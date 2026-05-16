@@ -1,0 +1,29 @@
+// contracts/eligibility.compact
+pragma language_version >= 0.14.0;
+
+import Config from
+"std/crypto/config";
+
+// The Eligibility Contracts
+// This contract proves a patient is eligible for a specific medical trial
+// WITHOUT revealing any of the patient's underlying health details and data.
+
+export contract Eligibility {
+    state {
+        trialId: Bytes<32>;
+        isEligible: Boolean;
+    }
+    export circuit
+    constructor(publicTrialId: Bytes<32>) {
+        trialId = publicTrialId;
+        isEligible = false;
+    }
+    export circuit
+    proveEligibility(
+        patientScore: Uint<32>,
+        trialRequirement: Uint<32>
+    ) {
+        assert patientScore >= trialRequirement;
+        isEligible = true;
+    }
+}
