@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-// #1 PATIENT DATA (extracted from PDF)
+// PATIENT DATA (extracted from PDF)
 
 export const PatientFieldsSchema = z.object({
 
@@ -18,7 +18,7 @@ export const PatientFieldsSchema = z.object({
 
 export type PatientFields = z.infer<typeof PatientFieldsSchema>;
 
-// #2 TRIAL DATA (from ClinicalTrials.gov)
+// TRIAL DATA (from ClinicalTrials.gov)
 
 export const TrialMatchSchema = z.object({
 
@@ -37,7 +37,7 @@ export const TrialMatchSchema = z.object({
 
 export type TrialMatch = z.infer<typeof TrialMatchSchema>;
 
-// #3 ELIGIBILITY RESULT (from Gemini API)
+// ELIGIBILITY RESULT (from Gemini API)
 
 export const CriterionResultSchema = z.object({
 
@@ -66,7 +66,7 @@ export const EligibilityResultSchema = z.object({
 export type CriterionResult = z.infer<typeof CriterionResultSchema>;
 export type EligibilityResult = z.infer<typeof EligibilityResultSchema>;
 
-// #4 ZK Proof Payload (for Blockchain Verification)
+// ZK Proof Payload (for Blockchain Verification)
 
 export const ZKProofPayloadSchema = z.object({
 
