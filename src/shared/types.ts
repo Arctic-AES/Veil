@@ -66,6 +66,8 @@ export const EligibilityResultSchema = z.object({
 export type CriterionResult = z.infer<typeof CriterionResultSchema>;
 export type EligibilityResult = z.infer<typeof EligibilityResultSchema>;
 
+// ZK Proof Payload (for Blockchain Verification)
+
 export const ZKProofPayloadSchema = z.object({
 
     trialId: z.string(),

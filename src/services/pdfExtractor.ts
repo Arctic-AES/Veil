@@ -1,22 +1,10 @@
 /**
- * PDF -> PatientFields extractor.
- * Stub now — wire pdfjs-dist text extraction + a parser (or pass extracted text to Gemini).
+ * PDF -> PatientFields.
+ * Delegates to friend's Gemini-powered extractor in src/ai/extractPatient.
  */
-import {
-  PatientFieldsSchema,
-  type PatientFields,
-} from '../shared/types'
+import type { PatientFields } from '../shared/types'
+import { extractPatientFields } from '../ai/extractPatient'
 
-const MOCK: PatientFields = {
-  age: 34,
-  sex: 'female',
-  conditions: ['Breast cancer', 'Stage IIB', 'HER2+'],
-  medications: ['tamoxifen', 'anastrozole'],
-  biomarkers: ['HER2+', 'ER+', 'PR+'],
-}
-
-export async function extractPatientFromPdf(_file: File): Promise<PatientFields> {
-  // TODO: use pdfjs-dist getDocument() -> page.getTextContent() -> regex/LLM parse
-  await new Promise((r) => setTimeout(r, 1200))
-  return PatientFieldsSchema.parse(MOCK)
+export async function extractPatientFromPdf(file: File): Promise<PatientFields> {
+  return extractPatientFields(file)
 }
