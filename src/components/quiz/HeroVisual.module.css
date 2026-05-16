@@ -1,0 +1,22 @@
+.hero {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  z-index: 0;
+}
+.svg {
+  width: min(95%, 620px);
+  height: auto;
+  filter: drop-shadow(0 30px 80px rgba(13, 148, 136, 0.15));
+}
+.spinSlow { transform-origin: 250px 250px; animation: rot 30s linear infinite; }
+.spinFast { transform-origin: 250px 250px; animation: rot 18s linear infinite reverse; }
+.float { animation: bob 6s ease-in-out infinite; transform-origin: 250px 250px; }
+@keyframes rot { to { transform: rotate(360deg); } }
+@keyframes bob {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
