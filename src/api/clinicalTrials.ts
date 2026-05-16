@@ -3,10 +3,6 @@ import { TrialMatch } from '../shared/types';
 // The Clincal Trials.gov's public API
 const API_BASE_URL = 'https://clinicaltrials.gov/api/v2/studies';
 
-// Searches ClinicalTrials.gov for active trials matching a condition.
-// @param condition - The disease or condition
-//@returns Array of clean TrialMatch objects
-
 export async function searchTrials(condition: string): Promise<TrialMatch[]> {
     // URL with search parameters
     const params = new URLSearchParams({
