@@ -1,0 +1,48 @@
+.wrap {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 2;
+}
+.card {
+  position: absolute;
+  background: rgba(255, 255, 255, 0.78);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgba(207, 220, 236, 0.7);
+  border-radius: 16px;
+  padding: 16px 18px;
+  max-width: 260px;
+  box-shadow: 0 12px 40px -16px rgba(14, 34, 54, 0.22);
+  pointer-events: auto;
+  animation: floatIn 0.7s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+.quote {
+  font-family: var(--display);
+  font-style: italic;
+  font-size: 14px;
+  color: var(--ink);
+  line-height: 1.45;
+  margin-bottom: 8px;
+}
+.cite { font-size: 11px; color: var(--ink-3); }
+.name { font-weight: 600; color: var(--ink-2); }
+.meta { color: var(--ink-4); }
+
+.topRight   { top: 8%;  right: 5%;  animation-delay: 0.2s; }
+.midLeft    { top: 44%; left: 3%;   animation-delay: 0.45s; }
+.bottom     { bottom: 14%; left: 50%; transform: translateX(-50%); animation-delay: 0.7s; }
+
+@keyframes floatIn {
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.bottom { animation-name: floatInCenter; }
+@keyframes floatInCenter {
+  from { opacity: 0; transform: translate(-50%, 14px); }
+  to   { opacity: 1; transform: translate(-50%, 0); }
+}
+
+@media (max-width: 980px) {
+  .midLeft, .topRight, .bottom { display: none; }
+}

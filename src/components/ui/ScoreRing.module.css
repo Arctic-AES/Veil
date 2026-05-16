@@ -1,0 +1,32 @@
+.wrap { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+.ring {
+  width: 84px;
+  height: 84px;
+  border-radius: 50%;
+  background: conic-gradient(var(--teal) 0% var(--p), #e6eef7 var(--p) 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+.ring::before {
+  content: '';
+  position: absolute;
+  inset: 8px;
+  border-radius: 50%;
+  background: var(--surface);
+}
+.ring span {
+  position: relative;
+  font-family: var(--display);
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--ink);
+}
+.label {
+  font-size: 10.5px;
+  color: var(--ink-3);
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  font-weight: 600;
+}

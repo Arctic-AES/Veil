@@ -1,0 +1,34 @@
+.steps { list-style: none; display: flex; flex-direction: column; gap: 10px; padding: 0; margin: 0; }
+.steps li {
+  display: grid;
+  grid-template-columns: 24px 1fr auto;
+  gap: 12px;
+  align-items: center;
+  padding: 10px 14px;
+  border-radius: 10px;
+  background: var(--surface-tint);
+  border: 1px solid var(--border);
+  font-size: 13px;
+  color: var(--ink-2);
+  transition: all 0.3s;
+}
+.done { background: var(--green-soft); border-color: #cfe7d8; color: #155e2a; }
+.active { background: var(--primary-soft); border-color: #c9d8f7; color: var(--primary-2); }
+.num {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--surface);
+  border: 1.5px solid var(--border-strong);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--ink-3);
+}
+.done .num { background: var(--green); border-color: var(--green); color: #fff; }
+.active .num { background: var(--primary); border-color: var(--primary); color: #fff; }
+.ms { font-family: var(--mono); font-size: 11px; color: var(--ink-3); }
+.done .ms { color: #155e2a; }
+.active .ms { color: var(--primary-2); }

@@ -16,51 +16,47 @@ export async function screenEligibility(
     });
 
     const prompt = `
-    You are an expert clinical trial screener. 
+    You are an expert clinical trial screener.
     Evaluate if the patient meets the criteria for this trial.
-    
+
     Patient Profile:
     ${JSON.stringify(patient, null, 2)}
 
     Trial: ${trial.title}
-    
+
     Inclusion Criteria (MUST be met):
     ${JSON.stringify(criteria.inclusion, null, 2)}
 
     Exclusion Criteria (MUST NOT be met):
     ${JSON.stringify(criteria.exclusion, null, 2)}
 
-    You must evaluate EACH criterion individually.
-    If you don't have enough information to know if they meet a criterion, set "met" to null.
-    Set "eligible" to true ONLY IF all inclusion criteria are met (true) AND NO exclusion criteria are met (false).
+    Evaluate EACH criterion individually.
+    If insufficient information, set "met" to null.
+    Set "isEligible" to true ONLY IF all inclusion criteria are met (true) AND no exclusion criteria are met.
 
-    Return a JSON object with this EXACT structure:
+    Return a JSON object with this EXACT structure (schema-validated):
     {
-        "trialId": "${trial.nctId}",
-        "eligible": true,
-        "confidenceScore": 0, // Number from 0 to 100 based on how many criteria were null
+        "nctId": "${trial.nctId}",
+        "isEligible": true,
+        "confidenceScore": 95,
         "criteriaAnalysis": [
             {
-                "criterion": "The text of the criterion",
-                "met": true, // true, false, or null
-                "reason": "Brief explanation"
+                "criterion": "The exact text of the criterion",
+                "met": true,
+                "reasoning": "Brief explanation"
             }
         ]
     }
+
+    Field names MUST be: nctId, isEligible, confidenceScore, criteriaAnalysis, criterion, met, reasoning.
+    Do not use: eligible, reason, trialId.
+    Return ONLY the JSON, no markdown fences.
     `;
 
-    try {
-        const result = await model.generateContent(prompt);
-        const responseText = result.response.text();
-        const cleanJson = responseText.replace(/```json\n?|\n?```/g, '');
-        const rawObject = JSON.parse(cleanJson);
+    const result = await model.generateContent(prompt);
+    const responseText = result.response.text();
+    const cleanJson = responseText.replace(/```json\n?|\n?```/g, '').trim();
+    const rawObject = JSON.parse(cleanJson);
 
-        const validatedResult = EligibilityResultSchema.parse(rawObject);
-
-        return validatedResult;
-
-    } catch (error) {
-        console.error("Eligibility Screening Failed:", error);
-        throw new Error("Failed to screen patient eligibility.");
-    }
+    return EligibilityResultSchema.parse(rawObject);
 }

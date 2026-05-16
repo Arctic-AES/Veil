@@ -1,7 +1,7 @@
 {
   "name": "veil",
   "private": true,
-  "version": "0.0.0",
+  "version": "0.0.1",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -11,6 +11,8 @@
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",
+    "clsx": "^2.1.1",
+    "pdfjs-dist": "^4.7.76",
     "react": "^19.2.6",
     "react-dom": "^19.2.6",
     "zod": "^4.4.3"
