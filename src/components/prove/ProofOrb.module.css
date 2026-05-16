@@ -1,0 +1,28 @@
+.anim { height: 200px; display: flex; align-items: center; justify-content: center; position: relative; margin: 18px 0 24px; }
+.orb {
+  width: 140px;
+  height: 140px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #5dd5c5, var(--teal));
+  box-shadow: 0 0 0 8px rgba(13, 148, 136, 0.08), 0 0 60px rgba(13, 148, 136, 0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-family: var(--display);
+  font-size: 26px;
+  animation: orbPulse 3s ease-in-out infinite;
+}
+.done {
+  background: radial-gradient(circle at 35% 30%, #4ade80, var(--green));
+  box-shadow: 0 0 0 8px rgba(21, 128, 61, 0.08), 0 0 60px rgba(21, 128, 61, 0.4);
+  animation: none;
+}
+.ring { position: absolute; border: 1.5px dashed rgba(13, 148, 136, 0.35); border-radius: 50%; }
+.r1 { width: 200px; height: 200px; animation: spin 12s linear infinite; }
+.r2 { width: 260px; height: 260px; animation: spin 18s linear infinite reverse; }
+
+@keyframes orbPulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+}

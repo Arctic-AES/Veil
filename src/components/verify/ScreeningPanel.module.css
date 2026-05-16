@@ -1,0 +1,84 @@
+.card {
+  background: linear-gradient(180deg, var(--surface-tint), #f0f6fb);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  min-height: 100%;
+}
+.h3 { font-family: var(--display); font-weight: 500; font-size: 22px; margin-bottom: 4px; }
+.sub { font-size: 13px; color: var(--ink-2); }
+
+.status {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px;
+  border-radius: var(--r);
+  background: var(--surface);
+  border: 1px solid var(--border);
+}
+.pulseDot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--ink-4);
+  position: relative;
+}
+.scanning .pulseDot { background: var(--primary); }
+.scanning .pulseDot::after {
+  content: '';
+  position: absolute;
+  inset: -4px;
+  border-radius: 50%;
+  background: var(--primary);
+  opacity: 0.4;
+  animation: pulse 1.6s ease-out infinite;
+}
+.done .pulseDot { background: var(--green); }
+.body { flex: 1; }
+.t { font-weight: 600; font-size: 14px; }
+.s { font-size: 12px; color: var(--ink-3); font-family: var(--mono); }
+
+.crit { display: flex; flex-direction: column; gap: 6px; }
+.critRow {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 12px;
+  align-items: center;
+  padding: 9px 14px;
+  border-radius: 9px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  font-size: 13px;
+  color: var(--ink-2);
+  animation: fadeUp 0.3s ease both;
+}
+.v { font-family: var(--mono); font-size: 12px; color: var(--green); font-weight: 500; }
+
+.elig {
+  background: var(--green-soft);
+  border: 1px solid #bcdfca;
+  border-radius: var(--r);
+  padding: 18px 20px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  animation: fadeUp 0.4s ease both;
+}
+.check {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--green);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  flex-shrink: 0;
+}
+.eligT { font-family: var(--display); font-weight: 500; font-size: 18px; color: var(--green); margin-bottom: 2px; }
+.eligS { font-size: 12.5px; color: #155e2a; }

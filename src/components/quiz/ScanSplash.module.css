@@ -1,0 +1,39 @@
+.splash { text-align: center; padding: 40px 0 20px; animation: fadeUp 0.45s ease both; }
+.orb {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  margin: 0 auto 26px;
+  background: radial-gradient(circle at 35% 30%, #5dd5c5, var(--teal));
+  box-shadow: 0 0 0 8px rgba(13, 148, 136, 0.1), 0 0 60px rgba(13, 148, 136, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 42px;
+  animation: orbPulse 2.2s ease-in-out infinite;
+}
+.text { font-family: var(--display); font-weight: 500; font-size: 22px; color: var(--ink); margin-bottom: 6px; }
+.sub { font-size: 13.5px; color: var(--ink-3); font-family: var(--mono); }
+.progress {
+  max-width: 320px;
+  margin: 22px auto 0;
+  height: 4px;
+  background: var(--border);
+  border-radius: 99px;
+  overflow: hidden;
+}
+.bar {
+  height: 100%;
+  background: linear-gradient(90deg, var(--teal), var(--primary));
+  border-radius: 99px;
+  width: 0;
+  animation-name: scanFill;
+  animation-timing-function: ease;
+  animation-fill-mode: forwards;
+}
+@keyframes orbPulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+}
+@keyframes scanFill { to { width: 100%; } }

@@ -1,0 +1,62 @@
+.eyebrow {
+  font-size: 11px; font-weight: 600; letter-spacing: 1.4px; text-transform: uppercase;
+  color: var(--primary); margin-bottom: 14px;
+  display: inline-flex; align-items: center; gap: 8px;
+}
+.eyebrow::before { content: ''; width: 18px; height: 1.5px; background: currentColor; }
+.title {
+  font-family: var(--display); font-weight: 500;
+  font-size: clamp(24px, 3vw, 34px); line-height: 1.15;
+  letter-spacing: -0.015em; color: var(--ink); margin-bottom: 8px;
+}
+.subtitle { font-size: 17px; color: var(--ink-2); max-width: 620px; line-height: 1.65; margin-bottom: 24px; }
+
+.head {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  padding: 18px 22px;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.headIcon {
+  width: 56px; height: 56px; border-radius: 16px; font-size: 26px;
+  background: var(--primary-soft); color: var(--primary-2);
+  display: flex; align-items: center; justify-content: center;
+}
+.headBody { flex: 1; }
+.headLbl { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.8px; color: var(--ink-3); margin-bottom: 2px; }
+.headT { font-family: var(--display); font-weight: 500; font-size: 17px; color: var(--ink); line-height: 1.25; }
+.headS { font-size: 12.5px; color: var(--ink-3); margin-top: 2px; }
+.switch { font-size: 12px; color: var(--primary); font-weight: 500; }
+.switch:hover { text-decoration: underline; }
+
+.split { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-top: 8px; }
+.col { display: flex; flex-direction: column; gap: 16px; }
+.section { margin-bottom: 12px; }
+.sectionT { font-family: var(--display); font-weight: 500; font-size: 22px; }
+.sectionS { font-size: 13px; color: var(--ink-3); }
+
+.privacy {
+  margin-top: 8px; padding: 14px 16px; border-radius: var(--r);
+  background: var(--teal-soft); border: 1px solid #bfe0d6;
+  display: flex; gap: 12px; align-items: flex-start;
+}
+.privacyIcon {
+  background: var(--teal); color: #fff;
+  width: 32px; height: 32px; font-size: 15px; border-radius: 10px;
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+.privacyT { font-weight: 600; font-size: 13px; color: #0a6b62; margin-bottom: 2px; }
+.privacyS { font-size: 12px; color: #155e54; line-height: 1.55; }
+
+.nav {
+  display: flex; justify-content: space-between; margin-top: 32px;
+  padding-top: 24px; border-top: 1px dashed var(--border-strong);
+}
+
+@media (max-width: 920px) {
+  .split { grid-template-columns: 1fr; }
+}
