@@ -64,7 +64,6 @@ export default function CompareView({ patient, proof, walletAddress }: Props) {
               <span className={s.v} style={{ color: 'var(--green)' }}>SUBMITTED ✓</span>
             </div>
           </div>
-          <div className={s.note}>Visible only to you, on this device.</div>
         </div>
 
         <div className={`${s.side} ${s.coord}`}>

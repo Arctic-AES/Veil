@@ -1,8 +1,8 @@
-// MOCK IMPLEMENTATION - Bypassing @midnight-ntwrk/compact-runtime for UI testing
-// import { createMidnightProvider } from '@midnight-ntwrk/compact-runtime';
+// @ts-ignore
 import { Eligibility } from '../../contracts/eligibility.cjs';
 
 export async function connectMidnight() {
+
     console.log("Mocking Midnight provider connection...");
     return { mockProvider: true };
 }

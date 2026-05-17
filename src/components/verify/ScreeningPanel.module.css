@@ -79,8 +79,33 @@
   margin: 0;
 }
 
+/* Criteria Toggle */
+.toggleBtn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  color: var(--ink-1);
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background 0.2s;
+  text-align: left;
+}
+.toggleBtn:hover {
+  background: var(--surface-tint);
+}
+.toggleIcon {
+  font-size: 10px;
+  color: var(--ink-3);
+  width: 14px;
+}
+
 /* Criteria list */
-.crit { display: flex; flex-direction: column; gap: 6px; }
+.crit { display: flex; flex-direction: column; gap: 6px; animation: fadeUp 0.3s ease both; }
 .critLegend {
   display: grid;
   grid-template-columns: 1fr auto;
@@ -102,7 +127,7 @@
   background: var(--surface);
   border: 1px solid var(--border);
   font-size: 13px;
-  animation: fadeUp 0.3s ease both;
+  transition: all 0.3s ease;
 }
 .critPass { border-color: #bcdfca; background: #f0faf4; }
 .critFail { border-color: #f5bcbc; background: #fdf2f2; }
@@ -111,7 +136,8 @@
 .critLeft {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  align-items: flex-start;
+  gap: 6px;
 }
 .critType {
   font-size: 10px;
@@ -120,7 +146,6 @@
   text-transform: uppercase;
   border-radius: 4px;
   padding: 2px 6px;
-  width: fit-content;
 }
 .critTypeIn { background: #dbeafe; color: #1d4ed8; }
 .critTypeEx { background: #fee2e2; color: #b91c1c; }
@@ -128,6 +153,31 @@
 .critText { color: var(--ink-2); line-height: 1.45; }
 .critReasoning { font-size: 12px; color: var(--ink-3); font-style: italic; }
 
+.overrideBtn {
+  margin-top: 4px;
+  padding: 6px 12px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ink-2);
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+}
+.overrideBtn:hover {
+  background: #f0faf4;
+  border-color: #bcdfca;
+  color: #15803d;
+}
+
+.critRight {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+}
 .v {
   font-family: var(--mono);
   font-size: 12px;
@@ -139,6 +189,18 @@
 .vFail { color: #b91c1c; }
 .vUnknown { color: #92400e; }
 
+.overriddenBadge {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  background: var(--primary);
+  color: white;
+  padding: 2px 6px;
+  border-radius: 4px;
+  letter-spacing: 0.05em;
+  animation: fadeUp 0.3s ease both;
+}
+
 /* Final verdict */
 .elig {
   border-radius: var(--r);
@@ -147,6 +209,7 @@
   align-items: flex-start;
   gap: 14px;
   animation: fadeUp 0.4s ease both;
+  transition: all 0.4s ease;
 }
 .eligGreen { background: var(--green-soft); border: 1px solid #bcdfca; }
 .eligRed { background: #fdf2f2; border: 1px solid #f5bcbc; }
@@ -161,11 +224,12 @@
   justify-content: center;
   font-size: 18px;
   flex-shrink: 0;
+  transition: all 0.4s ease;
 }
 .checkGreen { background: var(--green); }
 .checkRed { background: #dc2626; }
 
-.eligT { font-family: var(--display); font-weight: 500; font-size: 17px; margin-bottom: 4px; }
+.eligT { font-family: var(--display); font-weight: 500; font-size: 17px; margin-bottom: 4px; transition: color 0.4s ease;}
 .eligTGreen { color: var(--green); }
 .eligTRed { color: #dc2626; }
 .eligS { font-size: 12.5px; color: var(--ink-2); line-height: 1.5; }

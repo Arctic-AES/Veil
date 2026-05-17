@@ -1,5 +1,3 @@
-// Takes massive text block (or just string) from ClinicalTrials.gov
-// Returns an array of criteria and exclusion criteria
 
 export function
     parseCriteria(rawText: string): { inclusion: string[], exclusion: string[] } {

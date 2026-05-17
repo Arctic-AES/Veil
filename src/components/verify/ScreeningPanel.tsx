@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import clsx from 'clsx'
 import { useEligibility } from '../../hooks/useEligibility'
 import { useFlow } from '../../hooks/useFlow'
@@ -6,16 +6,23 @@ import { parseCriteria } from '../../api/parseCriteria'
 import s from './ScreeningPanel.module.css'
 
 export default function ScreeningPanel() {
-  const { state } = useFlow()
+  const { state, dispatch } = useFlow()
   const { result, running, error, cooldown, run } = useEligibility()
 
-  // Re-run whenever trial changes (eligibility is cleared in reducer on SELECT_TRIAL)
+  const [criteriaOpen, setCriteriaOpen] = useState(false)
+  const [overrides, setOverrides] = useState<Record<number, boolean>>({})
+
   useEffect(() => {
     if (state.patient && state.selectedTrial && !result && !running && cooldown === 0 && !error) {
       run()
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state.patient, state.selectedTrial, cooldown])
+
+  useEffect(() => {
+    setOverrides({})
+    setCriteriaOpen(false)
+  }, [state.selectedTrial?.nctId])
 
   const ready = !!state.patient && !!state.selectedTrial
   const status: 'idle' | 'scanning' | 'done' | 'error' = !ready
@@ -28,15 +35,56 @@ export default function ScreeningPanel() {
           ? 'done'
           : 'scanning'
 
-  // Parse which criteria are inclusion vs exclusion so we can label them
   const parsedCriteria = state.selectedTrial
     ? parseCriteria(state.selectedTrial.eligibilityCriteria)
     : { inclusion: [], exclusion: [] }
 
-  const metCount = result?.criteriaAnalysis.filter((c) => c.met === true).length ?? 0
-  const failCount = result?.criteriaAnalysis.filter((c) => c.met === false).length ?? 0
-  const unknownCount = result?.criteriaAnalysis.filter((c) => c.met === null).length ?? 0
-  const total = result?.criteriaAnalysis.length ?? 0
+  const criteriaList = result?.criteriaAnalysis.map((c, i) => {
+    const isExclusion = parsedCriteria.exclusion.some(
+      (ex) => c.criterion.toLowerCase().includes(ex.toLowerCase().slice(0, 30))
+    )
+    const type = isExclusion ? 'exclusion' : 'inclusion'
+    const isOverridden = overrides[i] === true
+
+    let passesInclusion = type === 'inclusion' ? c.met === true : c.met === false
+    let failsCheck = type === 'inclusion' ? c.met === false : c.met === true
+    let isUnknown = c.met === null
+
+    if (isOverridden) {
+      passesInclusion = true
+      failsCheck = false
+      isUnknown = false
+    }
+
+    return { ...c, index: i, type, passesInclusion, failsCheck, isUnknown, isOverridden }
+  }) ?? []
+
+  const metCount = criteriaList.filter((c) => c.passesInclusion).length
+  const failCount = criteriaList.filter((c) => c.failsCheck).length
+  const unknownCount = criteriaList.filter((c) => c.isUnknown).length
+  const total = criteriaList.length
+
+  const isEligible = result ? (failCount === 0 && unknownCount === 0) : false
+
+  useEffect(() => {
+    if (!result) return
+    const globalOverrides = result.criteriaAnalysis.filter((c: any) => c.isOverridden).length
+    const localOverrides = Object.keys(overrides).filter(k => overrides[Number(k)]).length
+
+    if (result.isEligible !== isEligible || globalOverrides !== localOverrides) {
+      dispatch({
+        type: 'SET_ELIGIBILITY',
+        result: {
+          ...result,
+          isEligible,
+          criteriaAnalysis: result.criteriaAnalysis.map((c, i) => ({
+            ...c,
+            isOverridden: overrides[i] === true
+          }))
+        }
+      })
+    }
+  }, [isEligible, overrides, result, dispatch])
 
   return (
     <div className={s.card}>
@@ -47,7 +95,7 @@ export default function ScreeningPanel() {
         </p>
       </div>
 
-      {/* Status bar */}
+      {}
       <div
         className={clsx(s.status, s[status])}
         style={status === 'error' ? { borderColor: 'var(--amber-soft)', background: 'var(--amber-soft)' } : {}}
@@ -75,7 +123,7 @@ export default function ScreeningPanel() {
         </div>
       </div>
 
-      {/* Confidence explanation */}
+      {}
       {result && (
         <div className={s.confidence}>
           <div className={s.confRow}>
@@ -93,67 +141,77 @@ export default function ScreeningPanel() {
         </div>
       )}
 
-      {/* Criteria list */}
+      {}
       {result && (
+        <button className={s.toggleBtn} onClick={() => setCriteriaOpen(!criteriaOpen)}>
+          <span className={s.toggleIcon}>{criteriaOpen ? '▼' : '▶'}</span>
+          <span className={s.toggleText}>
+            {criteriaOpen ? 'Hide' : 'View'} detailed criteria analysis ({total})
+          </span>
+        </button>
+      )}
+
+      {}
+      {result && criteriaOpen && (
         <div className={s.crit}>
           <div className={s.critLegend}>
             <span>Criterion (from trial document)</span>
             <span>Result</span>
           </div>
 
-          {result.criteriaAnalysis.map((c, i) => {
-            // Determine if this is an inclusion or exclusion criterion by checking both lists
-            const isExclusion = parsedCriteria.exclusion.some(
-              (ex) => c.criterion.toLowerCase().includes(ex.toLowerCase().slice(0, 30))
-            )
-            const type = isExclusion ? 'exclusion' : 'inclusion'
-
-            // For inclusion: met=true is GOOD (✓), met=false is BAD (✗)
-            // For exclusion: met=false is GOOD (you don't have the excluding condition), met=true is BAD
-            const passesInclusion = type === 'inclusion' ? c.met === true : c.met === false
-            const failsCheck = type === 'inclusion' ? c.met === false : c.met === true
-            const isUnknown = c.met === null
-
+          {criteriaList.map((c) => {
             return (
-              <div key={i} className={clsx(s.critRow, isUnknown ? s.critUnknown : passesInclusion ? s.critPass : s.critFail)}>
+              <div key={c.index} className={clsx(s.critRow, c.isUnknown ? s.critUnknown : c.passesInclusion ? s.critPass : s.critFail)}>
                 <div className={s.critLeft}>
-                  <span className={clsx(s.critType, type === 'exclusion' ? s.critTypeEx : s.critTypeIn)}>
-                    {type === 'inclusion' ? 'MUST MEET' : 'MUST NOT HAVE'}
+                  <span className={clsx(s.critType, c.type === 'exclusion' ? s.critTypeEx : s.critTypeIn)}>
+                    {c.type === 'inclusion' ? 'MUST MEET' : 'MUST NOT HAVE'}
                   </span>
                   <span className={s.critText}>{c.criterion}</span>
                   {c.reasoning && <span className={s.critReasoning}>{c.reasoning}</span>}
+
+                  {}
+                  {!c.passesInclusion && !c.isOverridden && (
+                    <button
+                      className={s.overrideBtn}
+                      onClick={() => setOverrides(prev => ({ ...prev, [c.index]: true }))}
+                    >
+                      ✓ I meet this requirement (Override)
+                    </button>
+                  )}
                 </div>
-                <span className={clsx(s.v, isUnknown ? s.vUnknown : passesInclusion ? s.vPass : s.vFail)}>
-                  {isUnknown
-                    ? '? Not enough info'
-                    : passesInclusion
-                      ? '✓ Pass'
-                      : failsCheck
-                        ? '✗ Fail'
-                        : '?'}
-                </span>
+
+                <div className={s.critRight}>
+                  <span className={clsx(s.v, c.isUnknown ? s.vUnknown : c.passesInclusion ? s.vPass : s.vFail)}>
+                    {c.isUnknown
+                      ? '? Not enough info'
+                      : c.passesInclusion
+                        ? '✓ Pass'
+                        : '✗ Fail'}
+                  </span>
+                  {c.isOverridden && <div className={s.overriddenBadge}>Manual Override</div>}
+                </div>
               </div>
             )
           })}
         </div>
       )}
 
-      {/* Final verdict */}
+      {}
       {result && (
-        <div className={clsx(s.elig, result.isEligible ? s.eligGreen : s.eligRed)}>
-          <div className={clsx(s.check, result.isEligible ? s.checkGreen : s.checkRed)}>
-            {result.isEligible ? '✓' : '✗'}
+        <div className={clsx(s.elig, isEligible ? s.eligGreen : s.eligRed)}>
+          <div className={clsx(s.check, isEligible ? s.checkGreen : s.checkRed)}>
+            {isEligible ? '✓' : '✗'}
           </div>
           <div>
-            <div className={clsx(s.eligT, result.isEligible ? s.eligTGreen : s.eligTRed)}>
-              {result.isEligible
+            <div className={clsx(s.eligT, isEligible ? s.eligTGreen : s.eligTRed)}>
+              {isEligible
                 ? `Likely eligible — ${result.confidenceScore}% confidence`
                 : `Likely not eligible — ${result.confidenceScore}% confidence`}
             </div>
             <div className={s.eligS}>
-              {result.isEligible
+              {isEligible
                 ? 'All required criteria passed. Ready to generate a ZK proof.'
-                : `${failCount} required criterion${failCount !== 1 ? 'a' : ''} failed. Consider reviewing your records or selecting a different trial.`}
+                : `${failCount + unknownCount} required criterion${(failCount + unknownCount) !== 1 ? 'a' : ''} failed or unknown. Expand the criteria list above to manually override if you meet them.`}
             </div>
           </div>
         </div>

@@ -1,7 +1,4 @@
-/**
- * PDF -> PatientFields.
- * Delegates to friend's Gemini-powered extractor in src/ai/extractPatient.
- */
+
 import type { PatientFields } from '../shared/types'
 import { extractPatientFields, extractPatientFieldsFromMultiple } from '../ai/extractPatient'
 

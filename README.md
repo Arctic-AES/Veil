@@ -23,15 +23,17 @@
 
 **Veil** is a privacy-first clinical trial screener built for the [Midnight Network Hackathon](https://midnight.network). Patients upload their medical records, get AI-matched to relevant trials, and cryptographically prove their eligibility — all **without ever transmitting personal health information (PHI)** to a server.
 
+> **Hackathon Demo Note:** This is a proof-of-concept sample project. While the application queries the live ClinicalTrials.gov API and can technically search for any condition, the included mock medical records (PDFs) are specifically tailored for **Breast Cancer** and **Type 2 Diabetes**. For the best end-to-end evaluation experience, please search for these conditions when testing.
+
 The entire pipeline — PDF extraction, AI matching, eligibility screening — runs **client-side in the browser**. The only data that leaves the device is a zero-knowledge proof attesting to eligibility.
 
 ## Features
 
-- 🩺 **AI-Powered PDF Extraction** — Upload a medical summary PDF and Gemini Flash extracts structured patient data (age, sex, conditions, medications, biomarkers) directly in the browser.
-- 🔍 **Trial Discovery** — Queries ClinicalTrials.gov v2 API to find actively recruiting studies matching the patient's condition and region.
-- ✅ **Eligibility Screening** — Gemini evaluates each trial's inclusion/exclusion criteria against the patient's profile, returning per-criterion verdicts with confidence scores.
-- 🔐 **Zero-Knowledge Proofs** — A Midnight Network Compact contract proves eligibility on-chain without revealing any underlying health data.
-- 🛡️ **Client-Side Privacy** — All data processing happens locally. Zero bytes of PHI are transmitted. Records never leave the device.
+- **AI-Powered PDF Extraction** — Upload a medical summary PDF and Gemini Flash extracts structured patient data (age, sex, conditions, medications, biomarkers) directly in the browser.
+- **Trial Discovery** — Queries ClinicalTrials.gov v2 API to find actively recruiting studies matching the patient's condition and region.
+- **Eligibility Screening** — Gemini evaluates each trial's inclusion/exclusion criteria against the patient's profile, returning per-criterion verdicts with confidence scores.
+- **Zero-Knowledge Proofs** — A Midnight Network Compact contract proves eligibility on-chain without revealing any underlying health data.
+- **Client-Side Privacy** — All data processing happens locally. Zero bytes of PHI are transmitted. Records never leave the device.
 
 ## Architecture
 
@@ -191,6 +193,8 @@ You'll see a list of recruiting clinical trials returned by ClinicalTrials.gov, 
 
 > **Important:** These are **preliminary matches only**. The AI has not read your records yet. These are based purely on your 3 quiz answers. A trial appearing here does NOT mean you are eligible.
 
+> **Note on Locations:** The ClinicalTrials.gov API uses your region as a keyword search, not a strict geographic filter. Some multi-site trials list locations across multiple countries and still appear. Always check the trial's site list before applying.
+
 **Tap any trial** to begin private eligibility verification.
 
 ### Step 3 — Verify Privately
@@ -213,7 +217,9 @@ This is the core privacy step. Everything here runs **on your device only**.
 - Supported formats: **PDF, FHIR JSON, CCDA XML, CSV**.
 - Your files are **never uploaded** — they are read as binary data in your browser, converted to base64, and sent directly to the Gemini API from your browser. They are not routed through any Veil server.
 
-> 🔒 Open your browser DevTools → Network tab while importing. You will see zero requests to any Veil server.
+> Open your browser DevTools → Network tab while importing. You will see zero requests to any Veil server.
+
+> **Note on Multiple Files:** You can click "Choose records" and select multiple files at once. Veil will extract data from each one and merge them into a single patient profile before screening.
 
 #### Right panel: AI Screening
 
@@ -240,9 +246,13 @@ The confidence score (0–100%) reflects how certain the AI is about its **final
 - **100% confidence** = the AI had clear, unambiguous answers for all criteria.
 - **Low confidence (e.g. 40%)** = many criteria had `Not enough info` — the AI couldn't find the data needed to make a firm decision.
 
+> **Note on Confidence:** If your confidence is 60% but you're marked eligible, it means the AI is 60% sure you're eligible — likely because several criteria returned "Not enough info." Consider uploading additional records (lab results, specialist reports) to give the AI more data to work with.
+
 *Final verdict:*
 - ✓ **Likely eligible** — All inclusion criteria passed and no exclusion criteria were triggered.
 - ✗ **Likely not eligible** — One or more inclusion criteria failed, or an exclusion criterion was triggered.
+
+> **Note on Switching Trials:** Clicking "Switch trial" takes you back to the matches list. Selecting a new trial automatically clears the previous screening result and starts a fresh scan.
 
 ### Step 4 — Generate Proof
 
@@ -254,20 +264,6 @@ If you are deemed eligible, the app generates a **zero-knowledge (ZK) proof** us
 - **No medical data is included in the proof.** Only the yes/no conclusion is encoded.
 - The proof is signed with your Lace wallet and can be submitted to the trial sponsor on-chain.
 - The trial sponsor learns only: *"Someone is eligible"* — they never learn who you are or what your records contain.
-
-## Frequently Asked Questions
-
-**Q: Why can I see a trial from France when I said I'm in the USA?**
-> The ClinicalTrials.gov API uses your region as a keyword search, not a strict geographic filter. Some multi-site trials list locations across multiple countries and still appear. Always check the trial's site list before applying.
-
-**Q: What does it mean if my confidence is 60% but I'm marked eligible?**
-> It means the AI is 60% sure you're eligible — likely because several criteria returned "Not enough info." Consider uploading additional records (lab results, specialist reports) to give the AI more data to work with.
-
-**Q: Can I upload multiple PDFs?**
-> Yes. Click "Choose records" and select multiple files at once. Veil will extract data from each one and merge them into a single patient profile before screening.
-
-**Q: Why is the "Switch trial" button on the verify page?**
-> Clicking it takes you back to the matches list. Selecting a new trial automatically **clears the previous screening result** and starts a fresh scan.
 
 ## License
 

@@ -1,6 +1,5 @@
 import type { TrialMatch } from '../shared/types';
 
-// The ClinicalTrials.gov public API
 const API_BASE_URL = 'https://clinicaltrials.gov/api/v2/studies';
 
 export type TrialSearchResult = {
@@ -17,8 +16,7 @@ export async function searchTrials(condition: string, region?: string): Promise<
         'countTotal': 'true',
     });
 
-    if (region) {
-        // The ClinicalTrials.gov v2 API supports location search via query.locn
+    if (region && region !== 'Prefer not to say') {
         params.set('query.locn', region);
     }
 
