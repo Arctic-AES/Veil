@@ -3,10 +3,10 @@ import type { ProofProgress } from '../../services/zkProver'
 import s from './ProofSteps.module.css'
 
 const STEPS: { key: ProofProgress['step']; label: string }[] = [
-  { key: 'witness', label: 'Loading witness from local records' },
-  { key: 'compile', label: 'Compiling eligibility circuit' },
-  { key: 'prove', label: 'Generating SNARK over BLS12-381' },
-  { key: 'submit', label: 'Submitting proof to Midnight' },
+  { key: 'witness', label: 'Preparing eligibility data' },
+  { key: 'compact', label: 'Generating zero-knowledge proof' },
+  { key: 'commit', label: 'Signing commitment' },
+  { key: 'verify', label: 'Verifying locally' },
 ]
 
 type Props = {

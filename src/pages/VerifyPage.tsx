@@ -1,5 +1,8 @@
+import { useMemo } from 'react'
 import { useFlow } from '../hooks/useFlow'
 import { useEligibility } from '../hooks/useEligibility'
+import { parseCriteria } from '../api/parseCriteria'
+import { computeEligibilityVerdict } from '../lib/eligibilityVerdict'
 import Card from '../components/ui/Card'
 import Button from '../components/ui/Button'
 import WalletTile from '../components/verify/WalletTile'
@@ -11,20 +14,24 @@ export default function VerifyPage() {
   const { state, dispatch } = useFlow()
   const { result } = useEligibility()
   const trial = state.selectedTrial
+
+  const canGenerateProof = useMemo(() => {
+    if (!state.walletAddress || !state.patient || !result || !trial) return false
+    const parsed = parseCriteria(trial.eligibilityCriteria)
+    return computeEligibilityVerdict(result.criteriaAnalysis, parsed).isEligible
+  }, [state.walletAddress, state.patient, result, trial])
+
   if (!trial) {
     dispatch({ type: 'SET_STEP', step: 2 })
     return null
   }
 
-  const ready = !!result && result.isEligible
-
   return (
     <div>
       <div className={s.eyebrow}>Step 03 — Verify privately</div>
-      <h2 className={s.title}>Confirm eligibility without uploading anything</h2>
+      <h2 className={s.title}>Confirm eligibility without a Veil server</h2>
       <p className={s.subtitle}>
-        Connect your wallet, import your records, and let the AI screen you.
-        Only the cryptographic proof is submitted in the next step.
+        Connect your wallet, import your records or use a demo patient — screening runs entirely in your browser. Nothing is sent to a Veil server.
       </p>
 
       <div className={s.head}>
@@ -53,8 +60,10 @@ export default function VerifyPage() {
             <div className={s.privacy}>
               <div className={s.privacyIcon}>{'\u{1F512}'}</div>
               <div>
-                <div className={s.privacyT}>No network requests with your records</div>
-                <div className={s.privacyS}>Open DevTools → Network to verify. Records are wiped on tab close.</div>
+                <div className={s.privacyT}>No Veil backend</div>
+                <div className={s.privacyS}>
+                  All screening runs locally in your browser. No patient data leaves your device. State clears when you close the tab.
+                </div>
               </div>
             </div>
           </div>
@@ -67,8 +76,20 @@ export default function VerifyPage() {
         <Button variant="ghost" onClick={() => dispatch({ type: 'SET_STEP', step: 2 })}>
           ← Back to matches
         </Button>
-        <Button onClick={() => dispatch({ type: 'SET_STEP', step: 4 })} disabled={!ready}>
-          Generate proof →
+        <Button
+          onClick={() => dispatch({ type: 'SET_STEP', step: 4 })}
+          disabled={!canGenerateProof}
+          title={
+            !state.walletAddress
+              ? 'Connect wallet first'
+              : !state.patient
+                ? 'Import records or choose a demo patient'
+                : !canGenerateProof
+                  ? 'Complete screening with all criteria passing'
+                  : undefined
+          }
+        >
+          Generate commitment →
         </Button>
       </div>
     </div>

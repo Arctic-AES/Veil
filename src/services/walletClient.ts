@@ -1,17 +1,44 @@
+import { connectLaceWallet, isLaceAvailable } from './laceWallet'
+
 export type WalletInfo = {
   address: string
-  network: 'midnight-testnet' | 'midnight-mainnet'
+  network: 'midnight-testnet' | 'midnight-mainnet' | 'preprod' | string
   isDemoWallet: boolean
+  kind: 'lace' | 'demo'
+  shieldedAddress?: string
 }
 
-export async function connectLace(): Promise<WalletInfo> {
-  const isLaceInstalled =
-    typeof window !== 'undefined' && (window as any).cardano?.lace
+export class LaceNotInstalledError extends Error {
+  constructor() {
+    super(
+      'Midnight Lace wallet not found. Install Lace (https://www.lace.io/) or use demo mode for local UI only.',
+    )
+    this.name = 'LaceNotInstalledError'
+  }
+}
 
-  if (!isLaceInstalled) {
-    console.info('Lace extension not detected - using Veil sandbox wallet.')
-  } else {
-    console.info('Lace extension detected - using sandbox wallet for hackathon demo stability.')
+/** Prefer real Lace; fall back to session demo address when allowDemoFallback is true. */
+export async function connectWallet(options?: {
+  allowDemoFallback?: boolean
+}): Promise<WalletInfo> {
+  const allowDemo = options?.allowDemoFallback !== false
+
+  if (isLaceAvailable()) {
+    try {
+      const lace = await connectLaceWallet()
+      return {
+        address: lace.shieldedAddress,
+        network: lace.networkId,
+        isDemoWallet: false,
+        kind: 'lace',
+        shieldedAddress: lace.shieldedAddress,
+      }
+    } catch (e) {
+      console.warn('Lace connect failed:', e)
+      if (!allowDemo) throw e
+    }
+  } else if (!allowDemo) {
+    throw new LaceNotInstalledError()
   }
 
   const randomBytes = new Uint8Array(20)
@@ -20,11 +47,13 @@ export async function connectLace(): Promise<WalletInfo> {
     .map((b) => b.toString(16).padStart(2, '0'))
     .join('')
 
-  await new Promise((r) => setTimeout(r, 350))
-
   return {
     address: `demo1${hex}`,
-    network: 'midnight-testnet',
+    network: 'preprod',
     isDemoWallet: true,
+    kind: 'demo',
   }
 }
+
+/** @deprecated Use connectWallet */
+export const connectLace = connectWallet

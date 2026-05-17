@@ -67,7 +67,9 @@ export default function ScreeningPanel() {
 
   useEffect(() => {
     if (!result) return
-    const globalOverrides = result.criteriaAnalysis.filter((c: any) => c.isOverridden).length
+    const globalOverrides = result.criteriaAnalysis.filter(
+      (c) => (c as { isOverridden?: boolean }).isOverridden,
+    ).length
     const localOverrides = Object.keys(overrides).filter(k => overrides[Number(k)]).length
 
     if (result.isEligible !== isEligible || globalOverrides !== localOverrides) {
@@ -90,11 +92,12 @@ export default function ScreeningPanel() {
       <div>
         <h3 className={s.h3}>Local AI screening</h3>
         <p className={s.sub}>
-          Runs entirely in this browser. Your records are never sent to any server.
+          {state.patient?.isDemo
+            ? 'Sample patient — screening runs locally in your browser.'
+            : 'Screening runs locally in your browser — nothing is sent to a Veil server.'}
         </p>
       </div>
 
-      {}
       <div
         className={clsx(s.status, s[status])}
         style={status === 'error' ? { borderColor: 'var(--amber-soft)', background: 'var(--amber-soft)' } : {}}
@@ -117,12 +120,17 @@ export default function ScreeningPanel() {
                 ? error
                 : status === 'done' && result
                   ? `${metCount} passed · ${failCount} failed · ${unknownCount} unknown · ${total} total`
-                  : 'Gemini 2.5 Flash · running on-device'}
+                  : 'AI analysis · running locally'}
           </div>
         </div>
       </div>
 
-      {}
+      {status === 'error' && error && !running && cooldown === 0 && (
+        <button className={s.toggleBtn} onClick={run} style={{ marginTop: 8 }}>
+          Try again
+        </button>
+      )}
+
       {result && (
         <div className={s.confidence}>
           <div className={s.confRow}>
@@ -140,7 +148,6 @@ export default function ScreeningPanel() {
         </div>
       )}
 
-      {}
       {result && (
         <button className={s.toggleBtn} onClick={() => setCriteriaOpen(!criteriaOpen)}>
           <span className={s.toggleIcon}>{criteriaOpen ? '▼' : '▶'}</span>
@@ -150,7 +157,6 @@ export default function ScreeningPanel() {
         </button>
       )}
 
-      {}
       {result && criteriaOpen && (
         <div className={s.crit}>
           <div className={s.critLegend}>
@@ -168,7 +174,6 @@ export default function ScreeningPanel() {
                   <span className={s.critText}>{c.criterion}</span>
                   {c.reasoning && <span className={s.critReasoning}>{c.reasoning}</span>}
 
-                  {}
                   {!c.passesInclusion && !c.isOverridden && (
                     <button
                       className={s.overrideBtn}
@@ -195,7 +200,6 @@ export default function ScreeningPanel() {
         </div>
       )}
 
-      {}
       {result && (
         <div className={clsx(s.elig, isEligible ? s.eligGreen : s.eligRed)}>
           <div className={clsx(s.check, isEligible ? s.checkGreen : s.checkRed)}>

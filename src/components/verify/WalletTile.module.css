@@ -40,3 +40,9 @@
 }
 .connected { border-color: #bfe0d6; background: var(--teal-soft); }
 .connected .check { background: var(--teal); border-color: var(--teal); color: #fff; }
+.walletErr {
+  margin-top: 8px;
+  font-size: 12px;
+  color: #b91c1c;
+  font-weight: 500;
+}

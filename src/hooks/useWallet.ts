@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useFlow } from './useFlow'
-import { connectLace } from '../services/walletClient'
+import { connectWallet } from '../services/walletClient'
 
 export function useWallet() {
   const { state, dispatch } = useFlow()
@@ -11,8 +11,8 @@ export function useWallet() {
     setConnecting(true)
     setError(null)
     try {
-      const info = await connectLace()
-      dispatch({ type: 'SET_WALLET', address: info.address })
+      const info = await connectWallet()
+      dispatch({ type: 'SET_WALLET', address: info.address, kind: info.kind })
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Failed to connect')
     } finally {
@@ -22,6 +22,7 @@ export function useWallet() {
 
   return {
     address: state.walletAddress,
+    kind: state.walletKind,
     connected: !!state.walletAddress,
     connecting,
     error,

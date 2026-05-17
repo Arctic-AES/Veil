@@ -29,6 +29,7 @@ export function useZkProof() {
         state.eligibility,
         state.patient,
         state.walletAddress,
+        state.documentHashes,
         (p) => setProgress((prev) => [...prev, p]),
       )
       dispatch({ type: 'SET_PROOF', proof })

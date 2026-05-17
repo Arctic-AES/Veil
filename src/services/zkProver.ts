@@ -9,55 +9,89 @@ import {
   computeWitness,
   verifyEligibilityCommitment,
 } from '../zk/midnight'
+import { runEligibilityCircuits, summarizeProofData } from '../midnight/compactEligibility'
+import { getProofServerHint } from '../midnight/proofServer'
+import type { ProofData } from '@midnight-ntwrk/compact-runtime'
 
 export type ProofProgress = {
-  step: 'witness' | 'compile' | 'prove' | 'submit'
+  step: 'witness' | 'compact' | 'commit' | 'verify'
   ms: number
+}
+
+function serializeProofData(data: ProofData): string {
+  return JSON.stringify(data, (_key, value) =>
+    typeof value === 'bigint' ? value.toString() : value,
+  )
 }
 
 export async function generateProof(
   result: EligibilityResult,
   patient: PatientFields,
   walletAddress: string,
+  documentHashes: string[],
   onProgress?: (p: ProofProgress) => void,
 ): Promise<ZKProofPayload> {
-  const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
-
-  // Step 1: Witness Generation
-  const ms1 = 380 + Math.round(Math.random() * 100)
-  await sleep(ms1)
-  const witness = computeWitness(result)
-  onProgress?.({ step: 'witness', ms: ms1 })
-
-  // Step 2: Circuit Compilation
-  const ms2 = 1400 + Math.round(Math.random() * 300)
-  await sleep(ms2)
-  if (witness.patientScore < witness.trialRequirement && result.isEligible) {
-    console.warn(`Witness threshold mismatch: score ${witness.patientScore} vs req ${witness.trialRequirement}`)
+  const mark = (step: ProofProgress['step'], start: number) => {
+    onProgress?.({ step, ms: Math.round(performance.now() - start) })
   }
-  onProgress?.({ step: 'compile', ms: ms2 })
 
-  // Step 3: Proving
-  const ms3 = 2400 + Math.round(Math.random() * 500)
-  await sleep(ms3)
-  const commitment = await buildEligibilityCommitment({
+  const t0 = performance.now()
+  const witness = computeWitness(result)
+  if (witness.patientScore < witness.trialRequirement && result.isEligible) {
+    throw new Error(
+      'Screening witness does not satisfy the Compact circuit (score below requirement).',
+    )
+  }
+  if (!result.isEligible) {
+    throw new Error('Cannot generate a proof when screening did not pass all criteria.')
+  }
+  mark('witness', t0)
+
+  const tCompact = performance.now()
+  const commitmentDraft = await buildEligibilityCommitment({
     trialId: result.nctId,
     eligible: result.isEligible,
     patient,
     walletAddress,
     result,
     witness,
+    documentHashes,
   })
-  onProgress?.({ step: 'prove', ms: ms3 })
 
-  // Step 4: Verification & Ledger Submission
-  const ms4 = 650 + Math.round(Math.random() * 150)
-  await sleep(ms4)
+  const compactRun = runEligibilityCircuits(commitmentDraft.trialIdHash, witness)
+  if (!compactRun.finalLedger.isEligible) {
+    throw new Error('Compact circuit rejected eligibility (score below requirement).')
+  }
+  const proofServerHint = await getProofServerHint()
+  mark('compact', tCompact)
+
+  const t1 = performance.now()
+  const commitment: Awaited<ReturnType<typeof buildEligibilityCommitment>> & {
+    compact: import('../zk/midnight').CompactProofSummary
+  } = {
+    ...commitmentDraft,
+    compact: {
+      protocol: 'midnight-compact-mvp-v1' as const,
+      contract: 'eligibility.compact',
+      circuits: ['initTrial', 'proveEligibility'] as const,
+      patientScore: Number(compactRun.patientScore),
+      trialRequirement: Number(compactRun.trialRequirement),
+      ledgerIsEligible: compactRun.finalLedger.isEligible,
+      initTrial: summarizeProofData(compactRun.initTrial.proofData),
+      proveEligibility: summarizeProofData(compactRun.proveEligibility.proofData),
+      initTrialProofData: serializeProofData(compactRun.initTrial.proofData),
+      proveEligibilityProofData: serializeProofData(compactRun.proveEligibility.proofData),
+      proofServerHint,
+    },
+  }
+  mark('commit', t1)
+
+  const t2 = performance.now()
   const ok = await verifyEligibilityCommitment(commitment)
   if (!ok) {
     throw new Error('Commitment verification failed.')
   }
-  onProgress?.({ step: 'submit', ms: ms4 })
+  mark('verify', t2)
 
   return ZKProofPayloadSchema.parse({
     trialId: result.nctId,

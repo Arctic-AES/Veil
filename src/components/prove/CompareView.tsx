@@ -1,4 +1,5 @@
 import type { PatientFields, ZKProofPayload } from '../../shared/types'
+import type { EligibilityCommitment } from '../../zk/midnight'
 import s from './CompareView.module.css'
 
 type Props = {
@@ -20,9 +21,20 @@ const NEVER_VISIBLE = [
   'address',
 ]
 
+function parseCommitment(proofBytes: string): EligibilityCommitment | null {
+  try {
+    return JSON.parse(proofBytes) as EligibilityCommitment
+  } catch {
+    return null
+  }
+}
+
 export default function CompareView({ patient, proof, walletAddress }: Props) {
-  const proofHex = walletAddress.replace('0x', '').slice(0, 8) + 'a8d29c3f0b9e82c161a02b8d910fe28d7a18' + proof.trialId.slice(-4)
-  const proofShort = `0x${proofHex.slice(0, 10)}…${proofHex.slice(-6)} (Groth16 / BLS12-381)`
+  const commitment = parseCommitment(proof.proofBytes)
+  const proofShort = commitment
+    ? `${commitment.signature.slice(0, 12)}…${commitment.signature.slice(-10)}`
+    : proof.proofBytes.slice(0, 24) + '…'
+
   return (
     <div className={s.compare}>
       <div className={s.head}>
@@ -60,9 +72,17 @@ export default function CompareView({ patient, proof, walletAddress }: Props) {
                 <span className={s.v}>{patient.biomarkers.join(', ')}</span>
               </div>
             )}
+            {commitment && commitment.documentHashes.length > 0 && (
+              <div className={s.row}>
+                <span className={s.k}>PDF hash(es)</span>
+                <span className={s.v} style={{ fontFamily: 'var(--mono)', fontSize: 11 }}>
+                  {commitment.documentHashes.map((h) => h.slice(0, 14) + '…').join(', ')}
+                </span>
+              </div>
+            )}
             <div className={s.row}>
-              <span className={s.k}>Proof status</span>
-              <span className={s.v} style={{ color: 'var(--green)' }}>SUBMITTED ✓</span>
+              <span className={s.k}>Commitment</span>
+              <span className={s.v} style={{ color: 'var(--green)' }}>VERIFIED LOCALLY ✓</span>
             </div>
           </div>
         </div>
@@ -76,11 +96,38 @@ export default function CompareView({ patient, proof, walletAddress }: Props) {
               <span className={s.check}>✓</span> ELIGIBLE
             </div>
             <div className={s.coordMeta}>
-              <div className={s.crow}><span className={s.ck}>Trial</span><span className={s.cv}>{proof.trialId}</span></div>
-              <div className={s.crow}><span className={s.ck}>Submitted</span><span className={s.cv}>{new Date().toISOString().slice(0, 16).replace('T', ' ')} UTC</span></div>
-              <div className={s.crow}><span className={s.ck}>Verifier</span><span className={s.cv}>midnight://verify/v1</span></div>
-              <div className={s.crow}><span className={s.ck}>Proof π</span><span className={`${s.cv} ${s.proof}`}>{proofShort}</span></div>
-              <div className={s.crow}><span className={s.ck}>Patient ID</span><span className={s.cv}>{walletAddress.slice(0, 12)}…</span></div>
+              <div className={s.crow}>
+                <span className={s.ck}>Trial</span>
+                <span className={s.cv}>{proof.trialId}</span>
+              </div>
+              <div className={s.crow}>
+                <span className={s.ck}>Submitted</span>
+                <span className={s.cv}>
+                  {commitment?.timestamp
+                    ? commitment.timestamp.slice(0, 16).replace('T', ' ') + ' UTC'
+                    : new Date().toISOString().slice(0, 16).replace('T', ' ') + ' UTC'}
+                </span>
+              </div>
+              <div className={s.crow}>
+                <span className={s.ck}>Proof</span>
+                <span className={s.cv}>
+                  {commitment?.compact
+                    ? `Midnight · ${commitment.compact.proveEligibility.publicTranscriptLength} ops`
+                    : '—'}
+                </span>
+              </div>
+              <div className={s.crow}>
+                <span className={s.ck}>Verifier</span>
+                <span className={s.cv}>Midnight Network · local commitment</span>
+              </div>
+              <div className={s.crow}>
+                <span className={s.ck}>Commitment sig</span>
+                <span className={`${s.cv} ${s.proof}`}>{proofShort}</span>
+              </div>
+              <div className={s.crow}>
+                <span className={s.ck}>Patient ID</span>
+                <span className={s.cv}>{walletAddress.slice(0, 12)}…</span>
+              </div>
             </div>
             <div className={s.never}>
               <div className={s.neverLbl}>Never visible to coordinator</div>

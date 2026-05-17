@@ -5,12 +5,28 @@ export type EligibilityWitness = {
     trialRequirement: number
 }
 
+export type CompactProofSummary = {
+    protocol: 'midnight-compact-mvp-v1'
+    contract: string
+    circuits: readonly string[]
+    patientScore: number
+    trialRequirement: number
+    ledgerIsEligible: boolean
+    initTrial: { publicTranscriptLength: number; privateOutputCount: number; inputBytes: number }
+    proveEligibility: { publicTranscriptLength: number; privateOutputCount: number; inputBytes: number }
+    initTrialProofData: string
+    proveEligibilityProofData: string
+    proofServerHint: string
+}
+
 export type EligibilityCommitment = {
     protocol: 'veil-commitment-v1'
     curve: 'web-crypto-sha-256'
     trialIdHash: string
     eligibleBit: 0 | 1
     patientCommitment: string
+    /** SHA-256 of uploaded PDF bytes (empty for demo patients). */
+    documentHashes: string[]
     criteriaMerkleRoot: string
     nullifier: string
     nonce: string
@@ -18,6 +34,7 @@ export type EligibilityCommitment = {
     publicInputs: string[]
     signature: string
     timestamp: string
+    compact?: CompactProofSummary
 }
 
 const enc = new TextEncoder()
@@ -98,18 +115,20 @@ export async function buildEligibilityCommitment(args: {
     walletAddress: string
     result: EligibilityResult
     witness: EligibilityWitness
+    documentHashes?: string[]
 }): Promise<EligibilityCommitment> {
-    const { trialId, eligible, patient, walletAddress, result, witness } = args
+    const { trialId, eligible, patient, walletAddress, result, witness, documentHashes = [] } = args
 
     const salt = randomHex(32)
     const nonce = randomHex(16)
 
     const trialIdHash = await sha256(trialId)
-    const patientCommitment = await sha256(canonicalize(patient) + ':' + salt)
+    const { isDemo: _demo, ...patientPayload } = patient
+    const patientCommitment = await sha256(canonicalize(patientPayload) + ':' + salt)
 
     const leaves = await Promise.all(
         result.criteriaAnalysis.map(async (c, i) => {
-            const isExclusion = (c as any).type === 'exclusion'
+            const isExclusion = c.type === 'exclusion'
             const verdict =
                 (c as { isOverridden?: boolean }).isOverridden
                     ? 'override'
@@ -139,11 +158,15 @@ export async function buildEligibilityCommitment(args: {
         thresholdSatisfied,
     ]
 
+    const docRoot =
+        documentHashes.length > 0 ? await hashChain(documentHashes) : await sha256('veil-no-documents')
+
     const signature = await sha256(
         [
             trialIdHash,
             eligibleBit,
             patientCommitment,
+            docRoot,
             criteriaMerkleRoot,
             nullifier,
             nonce,
@@ -158,6 +181,7 @@ export async function buildEligibilityCommitment(args: {
         trialIdHash,
         eligibleBit,
         patientCommitment,
+        documentHashes,
         criteriaMerkleRoot,
         nullifier,
         nonce,
@@ -171,11 +195,17 @@ export async function buildEligibilityCommitment(args: {
 export async function verifyEligibilityCommitment(
     c: EligibilityCommitment,
 ): Promise<boolean> {
+    const docRoot =
+        (c.documentHashes?.length ?? 0) > 0
+            ? await hashChain(c.documentHashes)
+            : await sha256('veil-no-documents')
+
     const expectedSig = await sha256(
         [
             c.trialIdHash,
             c.eligibleBit,
             c.patientCommitment,
+            docRoot,
             c.criteriaMerkleRoot,
             c.nullifier,
             c.nonce,

@@ -1,0 +1,8 @@
+{
+  "version": 3,
+  "file": "index.js",
+  "sourceRoot": "../../../../",
+  "sources": ["contracts/eligibility.compact"],
+  "names": [],
+  "mappings": ";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;EAAA;;;;;;;;;;MAOA,AAAA,SAGC;;;;;cAHwB,eAAwB;;;;;;;;;;;;;;;;;;yCAAxB,eAAwB;;;;;;;;;2CAAxB,eAAwB;;;OAGhD;MAED,AAAA,gBAKC;;;;;cAJC,cAAsB;cACtB,kBAA0B;;;;;;;;;;;;;;;;;;;;;;;;;yCAD1B,cAAsB,+BACtB,kBAA0B;;;;;;;;;kDAD1B,cAAsB;kDACtB,kBAA0B;;;OAG3B;;;;;;;;;;GACA;EAlBD;;;;;;;;;;;;;;;;;;;;;;;;;;;;IAIA;;;;;;;;;yEAAiC;IACjC;;;;;;;;;yEAAkC;;;;;;;GAajC;EAXD,AAAA,YAGC,4BAHwB,eAAwB;IAC/C;;;;;;;2HAAmB,eAAa;;yEAAzB;IACP;;;;;;;;;yEAAU;;GACX;EAED,AAAA,mBAKC;;sBAJC,cAAsB;sBACtB,kBAA0B;;UAE1B,KAAU,GAAY,cAAY,IAAI,kBAAgB;IAAtD;;;;;;;2HAAA,KAAU;;yEAAA;;GACX;;;;;;;;;;;;;;;;IAbD;qCAAA;;;;;;;;;;;0GAAiC;KAAA;IACjC;qCAAA;;;;;;;;;;;0GAAkC;KAAA;;;;;;;;;;"
+}

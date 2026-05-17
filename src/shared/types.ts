@@ -8,6 +8,8 @@ export const PatientFieldsSchema = z.object({
     conditions: z.array(z.string()),
     medications: z.array(z.string()),
     biomarkers: z.array(z.string()).optional(),
+    /** True only for built-in demo patients — not derived from uploaded files. */
+    isDemo: z.boolean().optional(),
 
 });
 

@@ -1,34 +1,32 @@
+export function parseCriteria(rawText: string): { inclusion: string[]; exclusion: string[] } {
+  const result = { inclusion: [] as string[], exclusion: [] as string[] }
+  if (!rawText) return result
 
-export function
-    parseCriteria(rawText: string): { inclusion: string[], exclusion: string[] } {
-    const result = {
-        inclusion: [] as
-            string[],
-        exclusion: [] as
-            string[],
-    };
-    if (!rawText) return result;
-    const lowerText = rawText.toLowerCase();
-    const inclusionIndex = lowerText.indexOf('inclusion criteria');
-    const exclusionIndex = lowerText.indexOf('exclusion criteria');
+  const lower = rawText.toLowerCase()
+  const incIdx = lower.indexOf('inclusion criteria')
+  const excIdx = lower.indexOf('exclusion criteria')
 
-    let inclusionBlock = "";
-    let exclusionBlock = "";
+  function skipLabel(text: string, from: number, label: string): number {
+    let pos = from + label.length
+    if (text[pos] === ':') pos++
+    return pos
+  }
 
-    if (inclusionIndex !== -1 && exclusionIndex !== -1) {
-        inclusionBlock = rawText.substring(inclusionIndex + 'inclusion criteria:'.length, exclusionIndex);
-        exclusionBlock = rawText.substring(exclusionIndex + 'exclusion criteria:'.length);
-    } else if (inclusionIndex !== -1) {
-        inclusionBlock = rawText.substring(inclusionIndex + 'inclusion criteria:'.length);
-    } else if (exclusionIndex !== -1) {
-        exclusionBlock = rawText.substring(exclusionIndex + 'exclusion criteria:'.length);
-    }
-    const splitIntoBullets = (text: string) => {
-        return text.split(/\n\s*[-*0-9.]+\s+/)
-            .map(line => line.trim())
-            .filter(line => line.length > 10)
-    };
-    result.inclusion = splitIntoBullets(inclusionBlock);
-    result.exclusion = splitIntoBullets(exclusionBlock);
-    return result;
+  function splitBlock(text: string): string[] {
+    return text
+      .split(/\n\s*[-*•]?\s*(?:\d+[.)]\s+|\*\s+|-\s+)?/)
+      .map((l) => l.replace(/\n/g, ' ').trim())
+      .filter((l) => l.length > 10)
+  }
+
+  if (incIdx !== -1 && excIdx !== -1) {
+    result.inclusion = splitBlock(rawText.substring(skipLabel(lower, incIdx, 'inclusion criteria'), excIdx))
+    result.exclusion = splitBlock(rawText.substring(skipLabel(lower, excIdx, 'exclusion criteria')))
+  } else if (incIdx !== -1) {
+    result.inclusion = splitBlock(rawText.substring(skipLabel(lower, incIdx, 'inclusion criteria')))
+  } else if (excIdx !== -1) {
+    result.exclusion = splitBlock(rawText.substring(skipLabel(lower, excIdx, 'exclusion criteria')))
+  }
+
+  return result
 }

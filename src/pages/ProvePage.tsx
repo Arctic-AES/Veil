@@ -11,7 +11,7 @@ import s from './ProvePage.module.css'
 
 export default function ProvePage() {
   const { state, dispatch } = useFlow()
-  const { proof, progress, running, generate, reset } = useZkProof()
+  const { proof, progress, running, error, generate, reset } = useZkProof()
 
   useEffect(() => {
     reset()
@@ -26,25 +26,29 @@ export default function ProvePage() {
 
   return (
     <div>
-      <div className={s.eyebrow}>Step 04 — Zero-knowledge proof</div>
+      <div className={s.eyebrow}>Step 04 — Eligibility proof</div>
       <h2 className={s.title}>Prove eligibility. Reveal nothing.</h2>
       <p className={s.subtitle}>
-        Veil generates a cryptographic proof attesting that your records satisfy <em>{trial.nctId}</em>'s criteria.
-        The coordinator verifies on-chain — without seeing a single field.
+        Your eligibility is proven with zero-knowledge cryptography for <em>{trial.nctId}</em>. Only the result is disclosed — your medical records stay private.
       </p>
 
       <div className={s.grid}>
         <Card padded className={s.stage}>
-          <h3 className={s.stageT}>Generating proof</h3>
-          <p className={s.stageS}>Cryptographic eligibility commitment · SHA-256 over canonicalized witness · derived from the Compact circuit shape in contracts/eligibility.compact</p>
+          <h3 className={s.stageT}>Zero-knowledge proof</h3>
+          <p className={s.stageS}>
+            A tamper-proof commitment binds your screening result and record hashes. Connect Lace to submit to the Midnight network.
+          </p>
           <ProofOrb done={!!proof} />
           <ProofSteps progress={progress} running={running} />
+          {error && (
+            <p style={{ color: 'var(--red)', fontSize: 13, marginTop: 10 }}>{error}</p>
+          )}
           <Button
             onClick={generate}
             disabled={running || !!proof}
             style={{ width: '100%', justifyContent: 'center', marginTop: 18 }}
           >
-            {proof ? 'Proof verified on-chain' : running ? 'Generating…' : 'Generate & submit proof'}
+            {proof ? 'Proof package ready' : running ? 'Proving…' : 'Generate Midnight proof'}
           </Button>
         </Card>
 
@@ -58,17 +62,18 @@ export default function ProvePage() {
           </div>
           {state.eligibility && (
             <div className={s.constraints}>
-              <div className={s.constraintsLbl}>Circuit constraints (proven privately)</div>
-              {state.eligibility.criteriaAnalysis.map((c: any, i) => {
+              <div className={s.constraintsLbl}>Eligibility criteria</div>
+              {state.eligibility.criteriaAnalysis.map((c, i) => {
                 const isExclusion = c.type === 'exclusion'
-                const isPass = c.isOverridden === true || (isExclusion ? c.met === false : c.met === true)
-                const isFail = !c.isOverridden && (isExclusion ? c.met === true : c.met === false)
-                const isUnknown = c.met === null && !c.isOverridden
+                const overridden = (c as { isOverridden?: boolean }).isOverridden === true
+                const isPass = overridden || (isExclusion ? c.met === false : c.met === true)
+                const isFail = !overridden && (isExclusion ? c.met === true : c.met === false)
+                const isUnknown = c.met === null && !overridden
                 return (
                   <div key={i} className={clsx(s.cRow, isFail ? s.cRowFail : isPass ? s.cRowPass : s.cRowUnknown)}>
                     <span className={s.cK}>{c.criterion}</span>
                     <span className={s.cV} style={isFail ? {color: '#b91c1c'} : isUnknown ? {color: '#92400e'} : {}}>
-                      {c.isOverridden ? '✓ Overridden' : isUnknown ? '? Not enough info' : isPass ? '✓ Pass' : '✗ Fail'}
+                      {overridden ? '✓ Overridden' : isUnknown ? '? Not enough info' : isPass ? '✓ Pass' : '✗ Fail'}
                     </span>
                   </div>
                 )
@@ -76,7 +81,7 @@ export default function ProvePage() {
             </div>
           )}
           <div className={s.note}>
-            These are checked <strong>inside the proof</strong>. The actual values never leave your device.
+            These values stay on your device — the commitment only encodes verdicts and hashes.
           </div>
         </Card>
       </div>
@@ -91,7 +96,7 @@ export default function ProvePage() {
 
       <div className={s.cta}>
         <div className={s.ctaLeft}>
-          <strong>Proof generated and submitted.</strong> Trial coordinators can verify your eligibility without ever seeing your medical records. If selected, they will reach out via your wallet pseudonym to coordinate your enrollment.
+          <strong>Proof package ready.</strong> Commitment verified locally. Connect Lace to submit your eligibility proof to Midnight.
         </div>
         <div style={{ display: 'flex', gap: 10 }}>
           <Button variant="ghost" onClick={() => dispatch({ type: 'SET_STEP', step: 3 })}>
