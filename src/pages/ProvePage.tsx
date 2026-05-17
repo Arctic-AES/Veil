@@ -1,4 +1,5 @@
 import { useEffect } from 'react'
+import clsx from 'clsx'
 import { useFlow } from '../hooks/useFlow'
 import { useZkProof } from '../hooks/useZkProof'
 import Card from '../components/ui/Card'
@@ -58,12 +59,19 @@ export default function ProvePage() {
           {state.eligibility && (
             <div className={s.constraints}>
               <div className={s.constraintsLbl}>Circuit constraints (proven privately)</div>
-              {state.eligibility.criteriaAnalysis.map((c, i) => (
-                <div key={i} className={s.cRow}>
-                  <span className={s.cK}>{c.criterion}</span>
-                  <span className={s.cV}>{c.met ? '✓ satisfied' : '✗ failed'}</span>
-                </div>
-              ))}
+              {state.eligibility.criteriaAnalysis.map((c: any, i) => {
+                const isPass = c.met === true || c.isOverridden === true
+                const isFail = c.met === false && !c.isOverridden
+                const isUnknown = c.met === null && !c.isOverridden
+                return (
+                  <div key={i} className={clsx(s.cRow, isFail ? s.cRowFail : isPass ? s.cRowPass : s.cRowUnknown)}>
+                    <span className={s.cK}>{c.criterion}</span>
+                    <span className={s.cV} style={isFail ? {color: '#b91c1c'} : isUnknown ? {color: '#92400e'} : {}}>
+                      {c.isOverridden ? '✓ Overridden' : isUnknown ? '? Not enough info' : isPass ? '✓ Pass' : '✗ Fail'}
+                    </span>
+                  </div>
+                )
+              })}
             </div>
           )}
           <div className={s.note}>
@@ -82,7 +90,7 @@ export default function ProvePage() {
 
       <div className={s.cta}>
         <div className={s.ctaLeft}>
-          <strong>That's the entire flow.</strong> The coordinator can now reach out via your pseudonym to coordinate next steps. You decide if — and what — to share next.
+          <strong>Proof generated and submitted.</strong> Trial coordinators can verify your eligibility without ever seeing your medical records. If selected, they will reach out via your wallet pseudonym to coordinate your enrollment.
         </div>
         <div style={{ display: 'flex', gap: 10 }}>
           <Button variant="ghost" onClick={() => dispatch({ type: 'SET_STEP', step: 3 })}>

@@ -54,7 +54,6 @@ export async function matchTrials(patient: PatientFields, trials: TrialMatch[]):
             };
         });
 
-        // Filter out trials made by Gemini AI assumptions.
         return scoredTrials
             .filter(t => t.relevanceScore !== undefined && t.relevanceScore >= 30)
             .sort((a, b) => (b.relevanceScore || 0) - (a.relevanceScore || 0));

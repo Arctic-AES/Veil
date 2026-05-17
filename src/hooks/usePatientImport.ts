@@ -22,7 +22,6 @@ export function usePatientImport() {
     setError(null)
     try {
       const list = Array.from(files)
-      // Process ALL selected files and merge them into one patient profile
       const fields = await extractPatientFromMultiplePdfs(list)
       dispatch({ type: 'SET_PATIENT', patient: fields })
       setRecords(prev => [
@@ -40,6 +39,35 @@ export function usePatientImport() {
     }
   }
 
+  function loadSamplePatient(type: 'breast' | 'diabetes') {
+    setError(null)
+    if (type === 'breast') {
+      const fields = {
+        age: 45,
+        sex: 'female' as const,
+        conditions: ["Breast cancer", "Stage IIB", "Invasive ductal carcinoma"],
+        medications: ["Tamoxifen"],
+        biomarkers: ["HER2+", "ER+", "PR-"]
+      }
+      dispatch({ type: 'SET_PATIENT', patient: fields })
+      setRecords([
+        { name: 'sarah_jenkins_clinical_summary.pdf', size: 124000, status: 'loaded' }
+      ])
+    } else {
+      const fields = {
+        age: 58,
+        sex: 'male' as const,
+        conditions: ["Type 2 Diabetes", "Diabetic neuropathy"],
+        medications: ["Metformin", "Insulin glargine"],
+        biomarkers: ["HbA1c 8.2%"]
+      }
+      dispatch({ type: 'SET_PATIENT', patient: fields })
+      setRecords([
+        { name: 'marcus_vance_ehr_extract.json', size: 45000, status: 'loaded' }
+      ])
+    }
+  }
+
   return {
     patient: state.patient,
     records,
@@ -47,6 +75,8 @@ export function usePatientImport() {
     error,
     cooldown,
     importFiles,
+    loadSamplePatient,
   }
 }
+
 

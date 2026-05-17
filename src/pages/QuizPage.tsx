@@ -55,7 +55,7 @@ export default function QuizPage() {
 
   if (scanning) {
     const phases = [
-      { t: 'Searching 52,341 trials…', sub: 'ClinicalTrials.gov v2 · local inference' },
+      { t: 'Searching active clinical trials…', sub: 'ClinicalTrials.gov v2 API' },
       {
         t: 'Ranking by your criteria…',
         sub: `Condition: ${state.quiz.condition} · Region: ${state.quiz.region}`,
@@ -69,7 +69,6 @@ export default function QuizPage() {
     )
   }
 
-  // ===== LANDING: split-screen for Q1 =====
   if (qIdx === 0) {
     return (
       <div className={s.landing}>
@@ -127,7 +126,6 @@ export default function QuizPage() {
     )
   }
 
-  // ===== ORIGINAL CENTERED LAYOUT: Q2 + Q3 =====
   return (
     <div className={s.wrap}>
       <div className={s.header}>

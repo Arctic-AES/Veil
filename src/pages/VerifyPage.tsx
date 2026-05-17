@@ -23,8 +23,8 @@ export default function VerifyPage() {
       <div className={s.eyebrow}>Step 03 — Verify privately</div>
       <h2 className={s.title}>Confirm eligibility without uploading anything</h2>
       <p className={s.subtitle}>
-        Connect your wallet, import your records, and let the AI screen you locally. Nothing leaves this browser.
-        Only the cryptographic proof does — in the next step.
+        Connect your wallet, import your records, and let the AI screen you.
+        Only the cryptographic proof is submitted in the next step.
       </p>
 
       <div className={s.head}>
@@ -45,7 +45,7 @@ export default function VerifyPage() {
         <Card padded>
           <div className={s.section}>
             <h3 className={s.sectionT}>Connect & import</h3>
-            <p className={s.sectionS}>Wallet + medical records (on-device)</p>
+            <p className={s.sectionS}>Wallet + medical records</p>
           </div>
           <div className={s.col}>
             <WalletTile />
