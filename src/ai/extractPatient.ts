@@ -1,5 +1,5 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
-import { PatientFields, PatientFieldsSchema } from "../shared/types";
+import { PatientFieldsSchema, type PatientFields } from "../shared/types";
 
 const API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
 const genAI = new GoogleGenerativeAI(API_KEY || '');
