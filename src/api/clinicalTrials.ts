@@ -1,15 +1,12 @@
-import { TrialMatch } from '../shared/types';
+import type { TrialMatch } from '../shared/types';
 
-// The Clincal Trials.gov's public API
+// The ClinicalTrials.gov public API
 const API_BASE_URL = 'https://clinicaltrials.gov/api/v2/studies';
 
 export async function searchTrials(condition: string): Promise<TrialMatch[]> {
-    // URL with search parameters
     const params = new URLSearchParams({
         'query.cond': condition,
-        // Search by condition
         'filter.overallStatus': 'RECRUITING,NOT_YET_RECRUITING',
-        // Only active trials
         'pageSize': '5',
         'format': 'json',
     });
@@ -18,7 +15,6 @@ export async function searchTrials(condition: string): Promise<TrialMatch[]> {
     console.log(`Fetching trials from: ${url}`);
 
     try {
-        // Make the network request to the server
         const response = await fetch(url);
 
         if (!response.ok) {
@@ -27,10 +23,8 @@ export async function searchTrials(condition: string): Promise<TrialMatch[]> {
 
         const data = await response.json();
 
-        // Map the messy government JSON into our clean TrialMatch format
-        const cleanTrials: TrialMatch[] = data.studies.map((study: any) => {
+        const cleanTrials: TrialMatch[] = data.studies.map((study: { protocolSection: { identificationModule?: { nctId?: string; briefTitle?: string }; statusModule?: { overallStatus?: string }; conditionsModule?: { conditions?: string[] }; eligibilityModule?: { eligibilityCriteria?: string } } }) => {
             const protocol = study.protocolSection;
-
             return {
                 nctId: protocol.identificationModule?.nctId || 'UNKNOWN',
                 title: protocol.identificationModule?.briefTitle || 'Untitled Trial',
@@ -45,6 +39,5 @@ export async function searchTrials(condition: string): Promise<TrialMatch[]> {
     } catch (error) {
         console.error('Failed to fetch trials:', error);
         return [];
-        // If the API crashes, return an empty array
     }
 }
