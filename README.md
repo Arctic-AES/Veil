@@ -5,15 +5,16 @@
 <h3 align="center">Private Clinical Trial Screening</h3>
 
 <p align="center">
-  Find a trial. Prove you qualify. <em>Reveal nothing else.</em>
+  Find a trial. Screen your records. Prove eligibility — <em>without revealing your health data.</em>
 </p>
 
 <p align="center">
-  <a href="#features">Features</a> •
+  <a href="#overview">Overview</a> •
+  <a href="#privacy-model">Privacy</a> •
   <a href="#architecture">Architecture</a> •
   <a href="#getting-started">Getting Started</a> •
-  <a href="#tech-stack">Tech Stack</a> •
-  <a href="#project-structure">Project Structure</a> •
+  <a href="#how-it-works">How It Works</a> •
+  <a href="#project-structure">Structure</a> •
   <a href="#license">License</a>
 </p>
 
@@ -21,47 +22,78 @@
 
 ## Overview
 
-**Veil** is a privacy-first clinical trial screener built for the [Midnight Network Hackathon](https://midnight.network). Patients upload their medical records, get AI-matched to relevant trials, and cryptographically prove their eligibility — all **without ever transmitting personal health information (PHI)** to a server.
+**Veil** is a privacy-first clinical trial screener built for the [Midnight Network Hackathon](https://midnight.network). Patients can:
 
-> **Hackathon Demo Note:** This is a proof-of-concept sample project. While the application queries the live ClinicalTrials.gov API and can technically search for any condition, the included mock medical records (PDFs) are specifically tailored for **Breast Cancer** and **Type 2 Diabetes**. For the best end-to-end evaluation experience, please search for these conditions when testing.
+1. **Discover** actively recruiting trials via the live [ClinicalTrials.gov](https://clinicaltrials.gov) v2 API.
+2. **Screen** their medical records against a trial's inclusion and exclusion criteria — AI runs in the browser, nothing touches a Veil server.
+3. **Prove eligibility on Midnight** — the compiled `Eligibility` contract runs in-browser via `@midnight-ntwrk/compact-runtime` (WASM), producing `proofData` for each circuit. A `veil-commitment-v1` package binds SHA-256 record hashes, the screening witness, and a nullifier. Only a single boolean — *eligible or not* — is disclosed on-ledger.
 
-The entire pipeline — PDF extraction, AI matching, eligibility screening — runs **client-side in the browser**. The only data that leaves the device is a zero-knowledge proof attesting to eligibility.
+There is **no Veil backend**. All state lives in the browser tab.
 
-## Features
+> **Demo path:** Search **Breast Cancer** or **Type 2 Diabetes**, select any recruiting trial, load a demo patient, override the one undocumented criterion, then generate the proof. Full PDF import and live AI screening require a Gemini API key.
 
-- **AI-Powered PDF Extraction** — Upload a medical summary PDF and Gemini Flash extracts structured patient data (age, sex, conditions, medications, biomarkers) directly in the browser.
-- **Trial Discovery** — Queries ClinicalTrials.gov v2 API to find actively recruiting studies matching the patient's condition and region.
-- **Eligibility Screening** — Gemini evaluates each trial's inclusion/exclusion criteria against the patient's profile, returning per-criterion verdicts with confidence scores.
-- **Zero-Knowledge Proofs** — A Midnight Network Compact contract proves eligibility on-chain without revealing any underlying health data.
-- **Client-Side Privacy** — All data processing happens locally. Zero bytes of PHI are transmitted. Records never leave the device.
+### Implementation status
+
+| Capability | Status |
+|---|---|
+| Live trial search — ClinicalTrials.gov v2 | ✅ |
+| PDF → structured patient profile (Gemini 2.5 Flash) | ✅ Requires API key |
+| Per-criterion eligibility screening (Gemini 2.5 Flash) | ✅ Requires API key; demo rules without key |
+| Local SHA-256 eligibility commitment + record hashes | ✅ |
+| Compact contract compiled to `contracts/managed/` | ✅ `npm run compact` |
+| In-browser circuit execution + `proofData` per circuit | ✅ `@midnight-ntwrk/compact-runtime` + WASM |
+| Lace wallet — `@midnight-ntwrk/dapp-connector-api`, `preprod`, demo fallback | ✅ |
+| Balanced tx submit to Preprod | ⏳ Lace + Docker proof server (see below) |
+
+---
+
+## Privacy model
+
+Veil is designed so **no PHI passes through a Veil server** — because there is no Veil server.
+
+| Data | Where it goes |
+|---|---|
+| Quiz answers | Browser memory only |
+| Trial metadata | ClinicalTrials.gov (public API, no PHI) |
+| PDF files | Read in browser → base64 → **Google Gemini API** for extraction |
+| Patient profile + criteria | **Google Gemini API** when a key is configured |
+| Eligibility commitment + `proofData` | Built and verified **in the browser** |
+| Wallet | `window.midnight.mnLace` on `preprod` |
+
+**Open DevTools → Network** to verify: no requests to a Veil domain. With a Gemini key you will see requests to `generativelanguage.googleapis.com`. For full ZK proving, run the [Midnight proof server](https://docs.midnight.network/getting-started/installation) on Docker port `6300` and point Lace → Settings → Midnight → Local.
+
+---
 
 ## Architecture
 
 ```
-┌─────────────────────────────────────────────────────────────────┐
-│                        BROWSER (Client)                         │
-│                                                                 │
-│  ┌──────────┐   ┌──────────────┐   ┌───────────────────────┐   │
-│  │  PDF      │──▶│  Gemini AI   │──▶│  Patient Profile      │   │
-│  │  Upload   │   │  Extraction  │   │  (stays on device)    │   │
-│  └──────────┘   └──────────────┘   └───────────┬───────────┘   │
-│                                                 │               │
-│  ┌──────────────────────────────────────────────▼────────────┐  │
-│  │          ClinicalTrials.gov v2 API                        │  │
-│  │          (public, no PHI sent)                             │  │
-│  └──────────────────────────────────────────────┬────────────┘  │
-│                                                 │               │
-│  ┌──────────────┐   ┌───────────────────────────▼────────────┐  │
-│  │  Gemini AI   │◀──│  Trial Matches                         │  │
-│  │  Screening   │──▶│  Eligibility Verdicts                  │  │
-│  └──────────────┘   └───────────────────────────┬────────────┘  │
-│                                                 │               │
-│  ┌──────────────────────────────────────────────▼────────────┐  │
-│  │  Midnight ZK Proof (Compact Circuit)                      │  │
-│  │  Proves eligibility on-chain · reveals nothing else       │  │
-│  └───────────────────────────────────────────────────────────┘  │
-└─────────────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────────────┐
+│                         BROWSER (client only)                       │
+│                                                                     │
+│  Step 1 — Quiz                                                       │
+│  condition · region · priority  ──▶  React state (tab memory)       │
+│                                                                     │
+│  Step 2 — Matches                                                    │
+│  ClinicalTrials.gov v2  ◀──  query.cond + query.locn                │
+│  Local Jaccard score ranks results (no AI, no PHI)                  │
+│                                                                     │
+│  Step 3 — Verify                                                     │
+│  ┌────────────┐    ┌──────────────────┐    ┌──────────────────────┐ │
+│  │ PDF upload │───▶│ Gemini 2.5 Flash │───▶│ PatientFields        │ │
+│  │ (or Demo)  │    │ extract + screen │    │ + SHA-256 PDF hashes │ │
+│  └────────────┘    └──────────────────┘    └──────────┬───────────┘ │
+│                                                       │             │
+│  Step 4 — Prove                                       ▼             │
+│  ┌─────────────────────────────────────────────────────────────┐    │
+│  │  Midnight Compact: initTrial → proveEligibility             │    │
+│  │  proofData per circuit (WASM runtime, in-browser)           │    │
+│  │  veil-commitment-v1: record hashes + criteria root          │    │
+│  │  Lace (preprod) · proof server optional (:6300)             │    │
+│  └─────────────────────────────────────────────────────────────┘    │
+└─────────────────────────────────────────────────────────────────────┘
 ```
+
+---
 
 ## Getting Started
 
@@ -69,202 +101,219 @@ The entire pipeline — PDF extraction, AI matching, eligibility screening — r
 
 - **Node.js** ≥ 18
 - **npm** ≥ 9
-- A free **Gemini API key** from [Google AI Studio](https://aistudio.google.com/app/api-keys)
+- **Gemini API key** — [Google AI Studio](https://aistudio.google.com/app/apikeys) (required for PDF import and live screening)
+- **Lace wallet** with Midnight / Preprod — [Chrome extension](https://www.lace.io/)
+- **Compact compiler** (to recompile contracts) — [Midnight docs](https://docs.midnight.network/getting-started/installation)
+- **Docker** (optional, for full on-chain ZK proving) — `midnightntwrk/proof-server:8.0.3` on port `6300`
 
 ### Installation
 
 ```bash
-# Clone the repository
 git clone https://github.com/Arctic-AES/Veil.git
 cd Veil
-
-# Install dependencies
 npm install
-
-# Create your environment file
 cp .env.example .env
 ```
 
-Open `.env` and add your Gemini API key:
+Edit `.env`:
 
 ```env
-VITE_GEMINI_API_KEY=your_actual_api_key_here
-VITE_CT_API_BASE=https://clinicaltrials.gov/api/v2
+VITE_GEMINI_API_KEY=your_key_here
+VITE_CT_API_BASE=https://clinicaltrials.gov/api/v2/studies
+VITE_MIDNIGHT_NETWORK=preprod
+VITE_PROOF_SERVER_URL=http://localhost:6300
 ```
 
-### Running
+### Compile the Compact contract
+
+```bash
+npm run compact
+# compact compile contracts/eligibility.compact contracts/managed/eligibility
+```
+
+Compiled artifacts are committed under `contracts/managed/eligibility/` so judges can run without installing the Compact compiler.
+
+### Proof server (optional)
+
+```bash
+docker run -p 6300:6300 midnightntwrk/proof-server:8.0.3 midnight-proof-server -v
+```
+
+In Lace: **Settings → Midnight → Local** (`http://localhost:6300`).
+
+### Run
+
+```bash
+npm run dev       # http://localhost:5173
+npm run build     # production build
+npm run preview   # preview build
+```
+
+---
+
+## How it works
+
+### Step 1 — Quiz
+
+Three questions stored in browser memory only:
+
+| Question | Used for |
+|---|---|
+| **Medical condition** | `query.cond` on ClinicalTrials.gov |
+| **Region** | `query.locn` keyword filter |
+| **Priority** | UI display only |
+
+### Step 2 — Preliminary matches
+
+- Up to 10 recruiting / not-yet-recruiting studies returned from ClinicalTrials.gov v2.
+- Ranked locally by a Jaccard-style token overlap score between the quiz condition and each trial's title and conditions — no patient records, no AI.
+- **Top match %** reflects keyword overlap only, not clinical eligibility.
+
+### Step 3 — Verify privately
+
+**Wallet:** Connect Lace on `preprod` via `@midnight-ntwrk/dapp-connector-api`. Falls back to a session demo address if Lace is not installed. A wallet address is required — it anchors the nullifier (SHA-256 of wallet + trial ID) to reduce double-submission.
+
+**Import records:**
+
+| Path | Requires | Notes |
+|---|---|---|
+| **Import PDF** | `VITE_GEMINI_API_KEY` | File stays in browser; Gemini extracts structured fields |
+| **Demo Patients** | Nothing | Sarah Jenkins (HER2+ breast cancer) or Marcus Vance (T2DM) |
+
+- Multiple PDFs are extracted in parallel and merged (deduplicated conditions / medications / biomarkers).
+- Each file's raw bytes are hashed (SHA-256) into `documentHashes` for the commitment step.
+- Demo patients carry clinically detailed profiles designed to satisfy the majority of criteria for their respective trial types.
+
+**Screening** runs automatically once a patient and trial are loaded:
+
+1. Trial eligibility text is split into inclusion and exclusion lists.
+2. Gemini 2.5 Flash evaluates each criterion individually. Without an API key and with a demo patient, a local rules-based screener runs instead.
+3. Per-criterion results: **Pass**, **Fail**, or **? Not enough info**.
+
+Unknown criteria can be manually overridden — the patient attests they meet the requirement even though it isn't documented in the records on file. One criterion in each demo profile is intentionally left undocumented to demonstrate this flow.
+
+**Continue to Step 4** requires: wallet connected, patient loaded, all criteria passing or overridden.
+
+### Step 4 — Midnight eligibility proof
+
+1. **Witness** — `patientScore` and `trialRequirement` are derived from the criterion verdicts.
+2. **Compact** — `initTrial(trialIdHash)` then `proveEligibility(patientScore, trialRequirement)` run against the compiled `Eligibility` contract via `@midnight-ntwrk/compact-runtime` + WASM, entirely in-browser, producing serialized `proofData` per circuit.
+3. **Commitment** — a `veil-commitment-v1` JSON package is assembled: salted patient commitment, per-file record hashes, criteria Merkle root (hash chain over per-criterion verdicts), nullifier, and a SHA-256 signature over all fields.
+4. **Verify** — the commitment signature is verified locally before the proof package is finalized.
+
+What the on-ledger `Eligibility` contract stores:
+
+| Field | Visibility |
+|---|---|
+| `trialId` | Public |
+| `isEligible` | Public — `disclose(patientScore >= trialRequirement)` |
+| `patientScore` | Private (witness input only) |
+| `trialRequirement` | Private (witness input only) |
+
+The proof package includes serialized `proofData` for both circuits, ready for the Midnight proof server and Lace tx submission.
+
+---
+
+## Compact contract
+
+```compact
+pragma language_version >= 0.20;
+
+import CompactStandardLibrary;
+
+export ledger trialId: Bytes<32>;
+export ledger isEligible: Boolean;
+
+export circuit initTrial(publicTrialId: Bytes<32>): [] {
+  trialId = disclose(publicTrialId);
+  isEligible = false;
+}
+
+export circuit proveEligibility(
+  patientScore: Uint<32>,
+  trialRequirement: Uint<32>,
+): [] {
+  isEligible = disclose(patientScore >= trialRequirement);
+}
+```
+
+Patient score and trial requirement are private witness inputs. Only the boolean eligibility result is disclosed on-ledger.
+
+---
+
+## Tech stack
+
+| Layer | Technology |
+|---|---|
+| Frontend | React 19, TypeScript, Vite 8 |
+| AI | Google Gemini 2.5 Flash — extraction and per-criterion screening |
+| Trials API | ClinicalTrials.gov v2 REST |
+| Commitment | Web Crypto SHA-256 |
+| ZK contract | Midnight Compact + `@midnight-ntwrk/compact-runtime` (WASM) |
+| Wallet | Lace via `@midnight-ntwrk/dapp-connector-api` |
+| Validation | Zod 4 |
+| Styling | CSS Modules, design tokens |
+
+---
+
+## Project structure
+
+```
+src/
+├── ai/
+│   ├── extractPatient.ts       # PDF → PatientFields (Gemini)
+│   ├── screenEligibility.ts    # Profile + trial → EligibilityResult
+│   └── matchTrials.ts
+├── api/
+│   ├── clinicalTrials.ts       # ClinicalTrials.gov fetch
+│   ├── parseCriteria.ts        # Inclusion / exclusion text split
+│   └── scoring.ts              # Local preliminary match score
+├── components/                 # UI by flow step
+├── hooks/                      # useFlow, usePatientImport, useEligibility, useZkProof …
+├── lib/
+│   ├── fileHash.ts             # SHA-256 of uploaded PDF bytes
+│   └── eligibilityVerdict.ts   # Pass/fail/unknown aggregation
+├── midnight/
+│   ├── compactEligibility.ts   # initTrial + proveEligibility via compact-runtime
+│   ├── proofServer.ts          # localhost:6300 health check
+│   └── witnesses.ts
+├── pages/
+│   ├── QuizPage.tsx
+│   ├── MatchesPage.tsx
+│   ├── VerifyPage.tsx
+│   └── ProvePage.tsx
+├── services/
+│   ├── geminiClient.ts         # Screening orchestration
+│   ├── zkProver.ts             # Witness + circuits + commitment
+│   └── laceWallet.ts           # Lace DApp connector
+├── state/                      # FlowContext + reducer
+├── zk/
+│   └── midnight.ts             # Commitment builder (veil-commitment-v1)
+└── shared/types.ts             # Zod schemas
+
+contracts/
+├── eligibility.compact         # Midnight Compact source
+└── managed/eligibility/        # Compiler output (committed)
+```
+
+---
+
+## Testing checklist
 
 ```bash
 npm run dev
 ```
 
-Open [http://localhost:5173](http://localhost:5173) in your browser.
+1. Quiz → **Breast Cancer** or **Type 2 Diabetes** + a US region.
+2. Matches → select any recruiting trial.
+3. Verify → connect wallet → **Demo Patients** → load Sarah Jenkins or Marcus Vance.
+4. Screening runs automatically — criteria come back mostly passing, one is flagged as undocumented → click **Override**.
+5. DevTools → Network: `generativelanguage.googleapis.com` with an API key; no Veil host either way.
+6. Prove → **Generate Midnight proof** → watch the four proof steps complete → inspect the commitment and the "What each side sees" comparison.
+7. Connect Lace for full on-chain submission (requires proof server on `:6300`).
 
-### Building for Production
-
-```bash
-npm run build
-npm run preview
-```
-
-## Tech Stack
-
-| Layer | Technology |
-|---|---|
-| **Frontend** | React 19, TypeScript 6, Vite 8 |
-| **AI / LLM** | Google Gemini 2.0 Flash (`@google/generative-ai`) |
-| **PDF Parsing** | `pdfjs-dist` (client-side) |
-| **Data Validation** | Zod 4 (runtime schema validation) |
-| **Clinical Data** | ClinicalTrials.gov v2 REST API |
-| **Zero-Knowledge** | Midnight Network Compact language |
-| **Styling** | CSS Modules, CSS custom properties |
-
-## Project Structure
-
-```
-src/
-├── ai/                  # Gemini AI modules
-│   ├── extractPatient.ts    # PDF → structured patient data
-│   ├── matchTrials.ts       # Patient → trial relevance ranking
-│   └── screenEligibility.ts # Patient + trial → eligibility verdict
-├── api/
-│   └── clinicalTrials.ts    # ClinicalTrials.gov v2 API client
-├── components/
-│   ├── layout/              # TopBar, Stepper, Footer
-│   ├── prove/               # ZK proof visualization
-│   ├── quiz/                # Onboarding quiz & landing page
-│   ├── trial/               # Trial cards
-│   ├── ui/                  # Button, Card, Tag, ScoreRing, etc.
-│   └── verify/              # Records import, screening panels
-├── hooks/
-│   └── useFlow.ts           # Flow context hook
-├── pages/
-│   ├── QuizPage.tsx         # Step 1: Condition quiz + landing
-│   ├── MatchesPage.tsx      # Step 2: Trial matches
-│   ├── VerifyPage.tsx       # Step 3: Upload records & screen
-│   └── ProvePage.tsx        # Step 4: Generate ZK proof
-├── services/
-│   ├── walletClient.ts      # Lace wallet connection (stub)
-│   └── zkProver.ts          # ZK proof generation (stub)
-├── shared/
-│   └── types.ts             # Zod schemas + TypeScript types
-├── state/
-│   ├── FlowContext.tsx      # React context provider
-│   └── flowReducer.ts       # App state reducer
-├── styles/
-│   ├── tokens.css           # Design tokens (colors, radii, fonts)
-│   └── globals.css          # Global resets & animations
-└── zk/
-    └── midnight.ts          # Midnight Network integration
-
-contracts/
-└── eligibility.compact      # Midnight Compact ZK circuit
-```
-
-## How It Works: Step-by-Step Walkthrough
-
-### Step 1 — Quiz (Landing Page)
-
-**Where:** `http://localhost:5173`
-
-When you open Veil, you see a three-question quiz:
-
-| Question | What it does |
-|---|---|
-| **Medical condition** | Used as the search keyword for ClinicalTrials.gov (e.g. "Breast Cancer") |
-| **Location / region** | Filters results to recruiting trials near your area (e.g. "Georgia, USA") |
-| **Priority** | Tells the AI what matters most to you (speed, proximity, innovation) |
-
-> **No data is saved.** Your answers live only in memory in your browser tab. Closing the tab wipes everything.
-
-Once you hit **"Find trials for me"**, the app calls the live [ClinicalTrials.gov v2 API](https://clinicaltrials.gov/api/v2/studies) with your condition and region as search parameters.
-
-### Step 2 — Preliminary Matches
-
-**Where:** Matches page
-
-You'll see a list of recruiting clinical trials returned by ClinicalTrials.gov, filtered by your condition and location. The stats bar shows:
-
-| Stat | Meaning |
-|---|---|
-| **Trials searched** | The actual total number of trials returned by the API query for your condition & region |
-| **Match rate** | The % of the total pool that was narrow enough to show you (shown results ÷ total found) |
-| **AI model** | The Gemini model used for all AI tasks in this session |
-
-> **Important:** These are **preliminary matches only**. The AI has not read your records yet. These are based purely on your 3 quiz answers. A trial appearing here does NOT mean you are eligible.
-
-> **Note on Locations:** The ClinicalTrials.gov API uses your region as a keyword search, not a strict geographic filter. Some multi-site trials list locations across multiple countries and still appear. Always check the trial's site list before applying.
-
-**Tap any trial** to begin private eligibility verification.
-
-### Step 3 — Verify Privately
-
-**Where:** Verify page
-
-This is the core privacy step. Everything here runs **on your device only**.
-
-#### Left panel: Connect & Import
-
-**Wallet Connection**
-- Click **"Connect Lace"** to connect your Midnight Network wallet.
-- The app checks if the **Lace browser extension** is installed. If it's not, you'll see an error telling you to install it.
-- The wallet is needed to generate a cryptographic proof in Step 4.
-
-**Importing Your Records**
-- Click **"Import records to this browser"** or **"Choose records"**.
-- You can select **one or more PDFs** (lab reports, doctor's summaries, discharge notes, etc.).
-- If you upload multiple files, Veil reads each one separately with Gemini and **merges them** into a single patient profile, combining conditions, medications, and biomarkers from all documents.
-- Supported formats: **PDF, FHIR JSON, CCDA XML, CSV**.
-- Your files are **never uploaded** — they are read as binary data in your browser, converted to base64, and sent directly to the Gemini API from your browser. They are not routed through any Veil server.
-
-> Open your browser DevTools → Network tab while importing. You will see zero requests to any Veil server.
-
-> **Note on Multiple Files:** You can click "Choose records" and select multiple files at once. Veil will extract data from each one and merge them into a single patient profile before screening.
-
-#### Right panel: AI Screening
-
-Once records are loaded, the AI starts automatically.
-
-**How it works**
-1. The app parses the trial's eligibility criteria text into **Inclusion** and **Exclusion** lists.
-2. Your merged patient profile (from the PDF) is sent to **Gemini 2.5 Flash** along with the criteria.
-3. Gemini evaluates each criterion against your data and returns a structured result.
-
-**Understanding the Results**
-
-*Criterion types:*
-- `MUST MEET` (blue) — **Inclusion criterion** — you must satisfy this to be eligible.
-- `MUST NOT HAVE` (red) — **Exclusion criterion** — if you have this condition, you're disqualified.
-
-*Result icons:*
-- `✓ Pass` (green) — For inclusion: you meet this requirement. For exclusion: you don't have the disqualifying condition. Either way — this is GOOD.
-- `✗ Fail` (red) — For inclusion: you don't meet this requirement. For exclusion: you DO have the disqualifying condition. This is BAD.
-- `? Not enough info` (amber) — The AI could not find enough information in your records to make a determination. This does NOT automatically disqualify you — it just means the data wasn't there.
-
-*Confidence score:*
-The confidence score (0–100%) reflects how certain the AI is about its **final eligibility decision** — NOT how good or bad your result is.
-- **100% confidence** = the AI had clear, unambiguous answers for all criteria.
-- **Low confidence (e.g. 40%)** = many criteria had `Not enough info` — the AI couldn't find the data needed to make a firm decision.
-
-> **Note on Confidence:** If your confidence is 60% but you're marked eligible, it means the AI is 60% sure you're eligible — likely because several criteria returned "Not enough info." Consider uploading additional records (lab results, specialist reports) to give the AI more data to work with.
-
-*Final verdict:*
-- ✓ **Likely eligible** — All inclusion criteria passed and no exclusion criteria were triggered.
-- ✗ **Likely not eligible** — One or more inclusion criteria failed, or an exclusion criterion was triggered.
-
-> **Note on Switching Trials:** Clicking "Switch trial" takes you back to the matches list. Selecting a new trial automatically clears the previous screening result and starts a fresh scan.
-
-### Step 4 — Generate Proof
-
-**Where:** Prove page
-
-If you are deemed eligible, the app generates a **zero-knowledge (ZK) proof** using the Midnight Network protocol.
-
-- The proof mathematically certifies: *"This patient meets the eligibility criteria for [Trial ID]"*
-- **No medical data is included in the proof.** Only the yes/no conclusion is encoded.
-- The proof is signed with your Lace wallet and can be submitted to the trial sponsor on-chain.
-- The trial sponsor learns only: *"Someone is eligible"* — they never learn who you are or what your records contain.
+---
 
 ## License
 
-This project is licensed under the [MIT License](LICENSE).
+[MIT](LICENSE)

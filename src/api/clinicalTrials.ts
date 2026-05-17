@@ -1,6 +1,5 @@
 import type { TrialMatch } from '../shared/types';
-
-const API_BASE_URL = 'https://clinicaltrials.gov/api/v2/studies';
+import { getClinicalTrialsApiBase } from '../config/env';
 
 export type TrialSearchResult = {
     trials: TrialMatch[];
@@ -20,7 +19,7 @@ export async function searchTrials(condition: string, region?: string): Promise<
         params.set('query.locn', region);
     }
 
-    const url = `${API_BASE_URL}?${params.toString()}`;
+    const url = `${getClinicalTrialsApiBase()}?${params.toString()}`;
     console.log(`Fetching trials from: ${url}`);
 
     try {
@@ -48,6 +47,6 @@ export async function searchTrials(condition: string, region?: string): Promise<
 
     } catch (error) {
         console.error('Failed to fetch trials:', error);
-        return { trials: [], totalCount: 0 };
+        throw error instanceof Error ? error : new Error('Failed to fetch trials from ClinicalTrials.gov');
     }
 }

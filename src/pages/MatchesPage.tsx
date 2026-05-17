@@ -8,7 +8,7 @@ import s from './MatchesPage.module.css'
 
 export default function MatchesPage() {
   const { state, dispatch } = useFlow()
-  const { trials, loading, totalCount } = useTrialMatches()
+  const { trials, loading, totalCount, error, retry } = useTrialMatches()
 
   // Compute preliminary scores locally from the quiz condition vs each trial.
   // Real string-similarity computation — no fabricated values.
@@ -51,9 +51,22 @@ export default function MatchesPage() {
         <div className={s.stats}>
           <Stat n={searched} l="Trials searched" />
           <Stat n={topMatchStr} l="Top match" />
-          <Stat n="Gemini 2.5" l="AI model" />
+          <Stat n="Private" l="Screening" />
         </div>
       </div>
+
+      {error && (
+        <div className={s.errorBanner} role="alert">
+          <div className={s.errorIcon}>!</div>
+          <div className={s.errorBody}>
+            <div className={s.bannerT}>Could not load trials</div>
+            <div className={s.bannerS}>{error}</div>
+          </div>
+          <Button variant="ghost" onClick={retry}>
+            Retry
+          </Button>
+        </div>
+      )}
 
       <div className={s.banner}>
         <div className={s.bannerIcon}>i</div>

@@ -34,7 +34,7 @@ export default function TrialCard({ trial, preliminaryScore, featured, onSelect 
             .slice(0, 4)
             .map((line, i) => (
               <span key={i}>
-                <span className={s.ck}>✓</span>
+                <span className={s.ck}>·</span>
                 {line.trim().slice(0, 40)}
               </span>
             ))}

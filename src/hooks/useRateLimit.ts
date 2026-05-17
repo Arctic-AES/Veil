@@ -11,8 +11,14 @@ export function useRateLimit() {
 
   const handleRateLimit = (e: unknown) => {
     const msg = e instanceof Error ? e.message : String(e)
-    if (msg.includes('429') || msg.toLowerCase().includes('quota') || msg.includes('Too Many Requests')) {
-      setCooldown(60) // 60 seconds cooldown
+    if (
+      msg.includes('429') ||
+      msg.toLowerCase().includes('quota') ||
+      msg.toLowerCase().includes('rate') ||
+      msg.includes('Too Many Requests') ||
+      msg.includes('RESOURCE_EXHAUSTED')
+    ) {
+      setCooldown(30)
       return true
     }
     return false

@@ -1,4 +1,5 @@
 import TopBar from './components/layout/TopBar'
+import EnvBanner from './components/layout/EnvBanner'
 import Stepper from './components/layout/Stepper'
 import Footer from './components/layout/Footer'
 import QuizPage from './pages/QuizPage'
@@ -37,6 +38,7 @@ function Shell() {
   const isLanding = state.step === 1
   return (
     <>
+      <EnvBanner />
       {!isLanding && <TopBar />}
       {!isLanding && <Stepper />}
       <Stage />
