@@ -4,7 +4,7 @@
   overflow: hidden;
   pointer-events: none;
   z-index: 0;
-  background: radial-gradient(circle at 50% 50%, #0d0f17 0%, #040508 100%);
+  background: transparent;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -13,7 +13,7 @@
 .meshGrid {
   position: absolute;
   inset: 0;
-  opacity: 0.08;
+  opacity: 0.12;
   background-image: 
     linear-gradient(rgba(99, 102, 241, 0.3) 1px, transparent 1px),
     linear-gradient(90deg, rgba(99, 102, 241, 0.3) 1px, transparent 1px);
@@ -45,7 +45,7 @@
   width: 220px;
   height: 220px;
   border-radius: 50%;
-  background: radial-gradient(circle, rgba(168, 85, 247, 0.25) 0%, rgba(99, 102, 241, 0.15) 50%, transparent 100%);
+  background: radial-gradient(circle, rgba(168, 85, 247, 0.3) 0%, rgba(99, 102, 241, 0.18) 50%, transparent 100%);
   filter: blur(40px);
   animation: pulseGlow 8s ease-in-out infinite alternate;
 }
@@ -55,8 +55,8 @@
   width: 140px;
   height: 140px;
   border-radius: 50%;
-  border: 1px solid rgba(139, 92, 246, 0.3);
-  background: radial-gradient(circle, rgba(139, 92, 246, 0.1) 0%, transparent 80%);
+  border: 1px solid rgba(139, 92, 246, 0.25);
+  background: radial-gradient(circle, rgba(139, 92, 246, 0.08) 0%, transparent 80%);
   animation: pulseCore 4s ease-in-out infinite alternate;
 }
 
@@ -65,7 +65,7 @@
   width: 240px;
   height: 240px;
   border-radius: 50%;
-  border: 1px dashed rgba(6, 182, 212, 0.2);
+  border: 1px dashed rgba(6, 182, 212, 0.3);
   animation: spinRing 24s linear infinite;
 }
 
@@ -74,13 +74,13 @@
   width: 160px;
   height: 160px;
   border-radius: 50%;
-  background: rgba(17, 24, 39, 0.65);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
+  background: rgba(255, 255, 255, 0.72);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
   box-shadow: 
-    0 10px 30px -10px rgba(0, 0, 0, 0.7),
-    inset 0 1px 1px rgba(255, 255, 255, 0.1);
+    0 10px 30px -10px rgba(99, 102, 241, 0.18),
+    inset 0 1px 1px rgba(255, 255, 255, 0.8);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -92,8 +92,8 @@
 .shieldIcon {
   width: 48px;
   height: 48px;
-  color: #a855f7;
-  filter: drop-shadow(0 0 12px rgba(168, 85, 247, 0.6));
+  color: #8b5cf6;
+  filter: drop-shadow(0 0 12px rgba(139, 92, 246, 0.4));
   animation: glowIcon 3s ease-in-out infinite alternate;
 }
 
@@ -101,17 +101,17 @@
   font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.2em;
-  color: rgba(255, 255, 255, 0.7);
+  color: #1e1b4b;
   text-transform: uppercase;
 }
 
 .particle {
   position: absolute;
-  width: 4px;
-  height: 4px;
+  width: 5px;
+  height: 5px;
   border-radius: 50%;
-  background: rgba(99, 102, 241, 0.4);
-  box-shadow: 0 0 8px rgba(99, 102, 241, 0.8);
+  background: rgba(99, 102, 241, 0.6);
+  box-shadow: 0 0 8px rgba(99, 102, 241, 0.9);
   animation: driftParticle linear infinite;
   opacity: 0;
 }
@@ -121,8 +121,8 @@
   inset: 0;
   pointer-events: none;
   background:
-    radial-gradient(ellipse 80% 70% at 50% 50%, transparent 40%, rgba(4, 5, 8, 0.6) 100%),
-    linear-gradient(180deg, transparent 70%, #040508 100%);
+    radial-gradient(ellipse 80% 70% at 50% 50%, transparent 40%, rgba(255, 255, 255, 0.2) 100%),
+    linear-gradient(180deg, transparent 70%, rgba(255, 255, 255, 0.1) 100%);
 }
 
 @keyframes pulseGlow {
@@ -167,12 +167,12 @@
 
 @keyframes glowIcon {
   0% {
-    color: #a855f7;
-    filter: drop-shadow(0 0 8px rgba(168, 85, 247, 0.4));
+    color: #8b5cf6;
+    filter: drop-shadow(0 0 8px rgba(139, 92, 246, 0.3));
   }
   100% {
     color: #06b6d4;
-    filter: drop-shadow(0 0 16px rgba(6, 182, 212, 0.8));
+    filter: drop-shadow(0 0 16px rgba(6, 182, 212, 0.6));
   }
 }
 
