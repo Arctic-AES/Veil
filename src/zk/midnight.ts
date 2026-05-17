@@ -1,9 +1,10 @@
-import { createMidnightProvider } from '@midnight-ntwrk/compact-runtime';
+// MOCK IMPLEMENTATION - Bypassing @midnight-ntwrk/compact-runtime for UI testing
+// import { createMidnightProvider } from '@midnight-ntwrk/compact-runtime';
 import { Eligibility } from '../../contracts/eligibility.cjs';
 
 export async function connectMidnight() {
-    const provider = await createMidnightProvider("http://localhost:6300");
-    return provider;
+    console.log("Mocking Midnight provider connection...");
+    return { mockProvider: true };
 }
 
 export async function deployEligibilityContract(trialId: string) {

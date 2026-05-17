@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",
+    "@midnight-ntwrk/compact-runtime": "^0.16.0",
     "clsx": "^2.1.1",
     "pdfjs-dist": "^4.7.76",
     "react": "^19.2.6",
