@@ -8,7 +8,14 @@ export type WalletInfo = {
 }
 
 export async function connectLace(): Promise<WalletInfo> {
-  // TODO: replace with window.lace?.enable() or @midnight-ntwrk/lace-wallet-connector
+  // Check if Lace is actually installed in the browser
+  const isLaceInstalled = typeof window !== 'undefined' && (window as any).cardano?.lace
+
+  if (!isLaceInstalled) {
+    throw new Error('Lace Wallet extension is not installed. Please install it to continue.')
+  }
+
+  // Simulate connection delay for now until real Midnight SDK is hooked up
   await new Promise((r) => setTimeout(r, 700))
   return {
     address: 'addr1q9j2k8z4f3a...8f3a',
