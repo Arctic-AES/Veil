@@ -14,10 +14,10 @@ export type TrialSearchQuery = {
   status?: string
 }
 
-export async function searchTrials(query: TrialSearchQuery): Promise<TrialMatch[]> {
+export async function searchTrials(query: TrialSearchQuery): Promise<{ trials: TrialMatch[]; totalCount: number }> {
   const condition = query.condition?.trim()
-  if (!condition) return []
-  return fetchTrials(condition)
+  if (!condition) return { trials: [], totalCount: 0 }
+  return fetchTrials(condition, query.region)
 }
 
 /** Optional second pass: re-rank with Gemini once we have patient data. */

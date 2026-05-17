@@ -159,12 +159,115 @@ contracts/
 └── eligibility.compact      # Midnight Compact ZK circuit
 ```
 
-## How It Works
+## How It Works: Step-by-Step Walkthrough
 
-1. **Quiz** — The patient answers 3 quick questions (condition, region, priority) to seed trial discovery.
-2. **Match** — Veil queries ClinicalTrials.gov and uses Gemini to rank trials by relevance.
-3. **Verify** — The patient uploads their medical PDF. Gemini extracts structured data and evaluates eligibility against each trial's criteria — all client-side.
-4. **Prove** — A Midnight Compact circuit generates a zero-knowledge proof that the patient meets the trial's requirements, without revealing any health data. This proof is submitted on-chain.
+### Step 1 — Quiz (Landing Page)
+
+**Where:** `http://localhost:5173`
+
+When you open Veil, you see a three-question quiz:
+
+| Question | What it does |
+|---|---|
+| **Medical condition** | Used as the search keyword for ClinicalTrials.gov (e.g. "Breast Cancer") |
+| **Location / region** | Filters results to recruiting trials near your area (e.g. "Georgia, USA") |
+| **Priority** | Tells the AI what matters most to you (speed, proximity, innovation) |
+
+> **No data is saved.** Your answers live only in memory in your browser tab. Closing the tab wipes everything.
+
+Once you hit **"Find trials for me"**, the app calls the live [ClinicalTrials.gov v2 API](https://clinicaltrials.gov/api/v2/studies) with your condition and region as search parameters.
+
+### Step 2 — Preliminary Matches
+
+**Where:** Matches page
+
+You'll see a list of recruiting clinical trials returned by ClinicalTrials.gov, filtered by your condition and location. The stats bar shows:
+
+| Stat | Meaning |
+|---|---|
+| **Trials searched** | The actual total number of trials returned by the API query for your condition & region |
+| **Match rate** | The % of the total pool that was narrow enough to show you (shown results ÷ total found) |
+| **AI model** | The Gemini model used for all AI tasks in this session |
+
+> **Important:** These are **preliminary matches only**. The AI has not read your records yet. These are based purely on your 3 quiz answers. A trial appearing here does NOT mean you are eligible.
+
+**Tap any trial** to begin private eligibility verification.
+
+### Step 3 — Verify Privately
+
+**Where:** Verify page
+
+This is the core privacy step. Everything here runs **on your device only**.
+
+#### Left panel: Connect & Import
+
+**Wallet Connection**
+- Click **"Connect Lace"** to connect your Midnight Network wallet.
+- The app checks if the **Lace browser extension** is installed. If it's not, you'll see an error telling you to install it.
+- The wallet is needed to generate a cryptographic proof in Step 4.
+
+**Importing Your Records**
+- Click **"Import records to this browser"** or **"Choose records"**.
+- You can select **one or more PDFs** (lab reports, doctor's summaries, discharge notes, etc.).
+- If you upload multiple files, Veil reads each one separately with Gemini and **merges them** into a single patient profile, combining conditions, medications, and biomarkers from all documents.
+- Supported formats: **PDF, FHIR JSON, CCDA XML, CSV**.
+- Your files are **never uploaded** — they are read as binary data in your browser, converted to base64, and sent directly to the Gemini API from your browser. They are not routed through any Veil server.
+
+> 🔒 Open your browser DevTools → Network tab while importing. You will see zero requests to any Veil server.
+
+#### Right panel: AI Screening
+
+Once records are loaded, the AI starts automatically.
+
+**How it works**
+1. The app parses the trial's eligibility criteria text into **Inclusion** and **Exclusion** lists.
+2. Your merged patient profile (from the PDF) is sent to **Gemini 2.5 Flash** along with the criteria.
+3. Gemini evaluates each criterion against your data and returns a structured result.
+
+**Understanding the Results**
+
+*Criterion types:*
+- `MUST MEET` (blue) — **Inclusion criterion** — you must satisfy this to be eligible.
+- `MUST NOT HAVE` (red) — **Exclusion criterion** — if you have this condition, you're disqualified.
+
+*Result icons:*
+- `✓ Pass` (green) — For inclusion: you meet this requirement. For exclusion: you don't have the disqualifying condition. Either way — this is GOOD.
+- `✗ Fail` (red) — For inclusion: you don't meet this requirement. For exclusion: you DO have the disqualifying condition. This is BAD.
+- `? Not enough info` (amber) — The AI could not find enough information in your records to make a determination. This does NOT automatically disqualify you — it just means the data wasn't there.
+
+*Confidence score:*
+The confidence score (0–100%) reflects how certain the AI is about its **final eligibility decision** — NOT how good or bad your result is.
+- **100% confidence** = the AI had clear, unambiguous answers for all criteria.
+- **Low confidence (e.g. 40%)** = many criteria had `Not enough info` — the AI couldn't find the data needed to make a firm decision.
+
+*Final verdict:*
+- ✓ **Likely eligible** — All inclusion criteria passed and no exclusion criteria were triggered.
+- ✗ **Likely not eligible** — One or more inclusion criteria failed, or an exclusion criterion was triggered.
+
+### Step 4 — Generate Proof
+
+**Where:** Prove page
+
+If you are deemed eligible, the app generates a **zero-knowledge (ZK) proof** using the Midnight Network protocol.
+
+- The proof mathematically certifies: *"This patient meets the eligibility criteria for [Trial ID]"*
+- **No medical data is included in the proof.** Only the yes/no conclusion is encoded.
+- The proof is signed with your Lace wallet and can be submitted to the trial sponsor on-chain.
+- The trial sponsor learns only: *"Someone is eligible"* — they never learn who you are or what your records contain.
+
+## Frequently Asked Questions
+
+**Q: Why can I see a trial from France when I said I'm in the USA?**
+> The ClinicalTrials.gov API uses your region as a keyword search, not a strict geographic filter. Some multi-site trials list locations across multiple countries and still appear. Always check the trial's site list before applying.
+
+**Q: What does it mean if my confidence is 60% but I'm marked eligible?**
+> It means the AI is 60% sure you're eligible — likely because several criteria returned "Not enough info." Consider uploading additional records (lab results, specialist reports) to give the AI more data to work with.
+
+**Q: Can I upload multiple PDFs?**
+> Yes. Click "Choose records" and select multiple files at once. Veil will extract data from each one and merge them into a single patient profile before screening.
+
+**Q: Why is the "Switch trial" button on the verify page?**
+> Clicking it takes you back to the matches list. Selecting a new trial automatically **clears the previous screening result** and starts a fresh scan.
 
 ## License
 

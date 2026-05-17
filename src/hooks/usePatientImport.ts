@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useFlow } from './useFlow'
-import { extractPatientFromPdf } from '../services/pdfExtractor'
+import { extractPatientFromMultiplePdfs } from '../services/pdfExtractor'
 import { useRateLimit } from './useRateLimit'
 
 export type ImportedRecord = {
@@ -22,14 +22,16 @@ export function usePatientImport() {
     setError(null)
     try {
       const list = Array.from(files)
-      const fields = await extractPatientFromPdf(list[0])
+      // Process ALL selected files and merge them into one patient profile
+      const fields = await extractPatientFromMultiplePdfs(list)
       dispatch({ type: 'SET_PATIENT', patient: fields })
-      setRecords(
-        list.map((f) => ({ name: f.name, size: f.size, status: 'loaded' })),
-      )
+      setRecords(prev => [
+        ...prev,
+        ...list.map((f) => ({ name: f.name, size: f.size, status: 'loaded' as const }))
+      ])
     } catch (e) {
       if (handleRateLimit(e)) {
-        setError(null) // Handled by cooldown UI
+        setError(null)
       } else {
         setError(e instanceof Error ? e.message : 'Failed to import')
       }
@@ -47,3 +49,4 @@ export function usePatientImport() {
     importFiles,
   }
 }
+
