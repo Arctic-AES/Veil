@@ -40,10 +40,9 @@ export default function ScreeningPanel() {
     : { inclusion: [], exclusion: [] }
 
   const criteriaList = result?.criteriaAnalysis.map((c, i) => {
-    const isExclusion = parsedCriteria.exclusion.some(
+    const type = c.type || (parsedCriteria.exclusion.some(
       (ex) => c.criterion.toLowerCase().includes(ex.toLowerCase().slice(0, 30))
-    )
-    const type = isExclusion ? 'exclusion' : 'inclusion'
+    ) ? 'exclusion' : 'inclusion')
     const isOverridden = overrides[i] === true
 
     let passesInclusion = type === 'inclusion' ? c.met === true : c.met === false

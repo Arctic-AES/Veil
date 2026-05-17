@@ -60,8 +60,9 @@ export default function ProvePage() {
             <div className={s.constraints}>
               <div className={s.constraintsLbl}>Circuit constraints (proven privately)</div>
               {state.eligibility.criteriaAnalysis.map((c: any, i) => {
-                const isPass = c.met === true || c.isOverridden === true
-                const isFail = c.met === false && !c.isOverridden
+                const isExclusion = c.type === 'exclusion'
+                const isPass = c.isOverridden === true || (isExclusion ? c.met === false : c.met === true)
+                const isFail = !c.isOverridden && (isExclusion ? c.met === true : c.met === false)
                 const isUnknown = c.met === null && !c.isOverridden
                 return (
                   <div key={i} className={clsx(s.cRow, isFail ? s.cRowFail : isPass ? s.cRowPass : s.cRowUnknown)}>

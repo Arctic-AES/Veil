@@ -51,13 +51,14 @@ export async function screenEligibility(
         "criteriaAnalysis": [
             {
                 "criterion": "The exact text of the criterion",
+                "type": "inclusion",
                 "met": true,
                 "reasoning": "Brief explanation"
             }
         ]
     }
 
-    Field names MUST be: nctId, isEligible, confidenceScore, criteriaAnalysis, criterion, met, reasoning.
+    Field names MUST be: nctId, isEligible, confidenceScore, criteriaAnalysis, criterion, type, met, reasoning.
     Do not use: eligible, reason, trialId.
     Return ONLY the JSON, no markdown fences.
     `;

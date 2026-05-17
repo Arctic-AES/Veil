@@ -71,13 +71,21 @@ export function computeWitness(
     for (const c of result.criteriaAnalysis as Array<{
         met: boolean | null
         criterion: string
+        type?: 'inclusion' | 'exclusion'
         isOverridden?: boolean
     }>) {
         trialRequirement += 2
-        if (c.isOverridden) patientScore += 2
-        else if (c.met === true) patientScore += 2
-        else if (c.met === null) patientScore += 1
-        else patientScore += 0
+        if (c.isOverridden) {
+            patientScore += 2
+        } else if (c.type === 'exclusion') {
+            if (c.met === false) patientScore += 2
+            else if (c.met === null) patientScore += 1
+            else patientScore += 0
+        } else {
+            if (c.met === true) patientScore += 2
+            else if (c.met === null) patientScore += 1
+            else patientScore += 0
+        }
     }
     if (trialRequirement === 0) trialRequirement = 1
     return { patientScore, trialRequirement }
@@ -101,14 +109,21 @@ export async function buildEligibilityCommitment(args: {
 
     const leaves = await Promise.all(
         result.criteriaAnalysis.map(async (c, i) => {
+            const isExclusion = (c as any).type === 'exclusion'
             const verdict =
                 (c as { isOverridden?: boolean }).isOverridden
                     ? 'override'
-                    : c.met === true
-                      ? 'pass'
-                      : c.met === false
-                        ? 'fail'
-                        : 'unknown'
+                    : isExclusion
+                      ? c.met === false
+                        ? 'pass'
+                        : c.met === true
+                          ? 'fail'
+                          : 'unknown'
+                      : c.met === true
+                        ? 'pass'
+                        : c.met === false
+                          ? 'fail'
+                          : 'unknown'
             return sha256(`${i}:${verdict}:${c.criterion}`)
         }),
     )
