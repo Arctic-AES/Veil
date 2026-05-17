@@ -30,6 +30,7 @@ export type TrialMatch = z.infer<typeof TrialMatchSchema>;
 export const CriterionResultSchema = z.object({
 
     criterion: z.string(),
+    type: z.enum(['inclusion', 'exclusion']).optional(),
     met: z.boolean().nullable(),
     reasoning: z.string()
 
