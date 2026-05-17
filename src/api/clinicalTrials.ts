@@ -20,7 +20,6 @@ export async function searchTrials(condition: string, region?: string): Promise<
     }
 
     const url = `${getClinicalTrialsApiBase()}?${params.toString()}`;
-    console.log(`Fetching trials from: ${url}`);
 
     try {
         const response = await fetch(url);
@@ -46,7 +45,6 @@ export async function searchTrials(condition: string, region?: string): Promise<
         return { trials: cleanTrials, totalCount };
 
     } catch (error) {
-        console.error('Failed to fetch trials:', error);
         throw error instanceof Error ? error : new Error('Failed to fetch trials from ClinicalTrials.gov');
     }
 }
