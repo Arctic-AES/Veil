@@ -8,7 +8,7 @@ export async function matchTrials(patient: PatientFields, trials: TrialMatch[]):
     if (trials.length === 0) return [];
 
     const model = genAI.getGenerativeModel({
-        model: "gemini-2.0-flash",
+        model: "gemini-2.5-flash",
         generationConfig: { responseMimeType: "application/json" }
     });
 
@@ -58,8 +58,7 @@ export async function matchTrials(patient: PatientFields, trials: TrialMatch[]):
             .filter(t => t.relevanceScore !== undefined && t.relevanceScore >= 30)
             .sort((a, b) => (b.relevanceScore || 0) - (a.relevanceScore || 0));
 
-    } catch (error) {
-        console.error("Trial Matching Failed:", error);
+    } catch {
         return [];
     }
 }

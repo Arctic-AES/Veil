@@ -13,10 +13,6 @@ export async function checkProofServer(
   }
 }
 
-/**
- * Best-effort health check — full prove/submit flow uses Lace + proof server in production setups.
- * Hackathon judges can run: docker run -p 6300:6300 midnightntwrk/proof-server:8.0.3 midnight-proof-server -v
- */
 export async function getProofServerHint(): Promise<string> {
   const status = await checkProofServer()
   if (status === 'online') {

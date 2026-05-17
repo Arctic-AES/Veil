@@ -17,7 +17,6 @@ export class LaceNotInstalledError extends Error {
   }
 }
 
-/** Prefer real Lace; fall back to session demo address when allowDemoFallback is true. */
 export async function connectWallet(options?: {
   allowDemoFallback?: boolean
 }): Promise<WalletInfo> {
@@ -34,7 +33,6 @@ export async function connectWallet(options?: {
         shieldedAddress: lace.shieldedAddress,
       }
     } catch (e) {
-      console.warn('Lace connect failed:', e)
       if (!allowDemo) throw e
     }
   } else if (!allowDemo) {
@@ -55,5 +53,4 @@ export async function connectWallet(options?: {
   }
 }
 
-/** @deprecated Use connectWallet */
 export const connectLace = connectWallet
