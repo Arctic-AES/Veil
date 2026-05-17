@@ -1,19 +1,30 @@
-
 export type WalletInfo = {
   address: string
   network: 'midnight-testnet' | 'midnight-mainnet'
+  isDemoWallet: boolean
 }
 
 export async function connectLace(): Promise<WalletInfo> {
-  const isLaceInstalled = typeof window !== 'undefined' && (window as any).cardano?.lace
+  const isLaceInstalled =
+    typeof window !== 'undefined' && (window as any).cardano?.lace
 
   if (!isLaceInstalled) {
-    console.warn('Lace Wallet extension is not installed. Defaulting to development sandbox wallet.');
+    console.info('Lace extension not detected - using Veil sandbox wallet.')
+  } else {
+    console.info('Lace extension detected - using sandbox wallet for hackathon demo stability.')
   }
 
-  await new Promise((r) => setTimeout(r, 700))
+  const randomBytes = new Uint8Array(20)
+  crypto.getRandomValues(randomBytes)
+  const hex = Array.from(randomBytes)
+    .map((b) => b.toString(16).padStart(2, '0'))
+    .join('')
+
+  await new Promise((r) => setTimeout(r, 350))
+
   return {
-    address: 'addr1q9j2k8z4f3a...8f3a',
+    address: `demo1${hex}`,
     network: 'midnight-testnet',
+    isDemoWallet: true,
   }
 }

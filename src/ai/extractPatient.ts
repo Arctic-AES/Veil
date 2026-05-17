@@ -2,9 +2,19 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 import { PatientFieldsSchema, type PatientFields } from "../shared/types";
 
 const API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
-const genAI = new GoogleGenerativeAI(API_KEY || '');
+
+function requireGenAI(): GoogleGenerativeAI {
+    if (!API_KEY) {
+        throw new Error(
+            "VITE_GEMINI_API_KEY is missing. Add a real key to your .env file — Veil never fabricates patient data."
+        );
+    }
+    return new GoogleGenerativeAI(API_KEY);
+}
 
 async function extractFromFile(file: File): Promise<PatientFields> {
+    const genAI = requireGenAI();
+
     const base64String = await new Promise<string>((resolve, reject) => {
         const reader = new FileReader();
         reader.onloadend = () => {
@@ -67,48 +77,10 @@ function mergePatientFields(records: PatientFields[]): PatientFields {
 }
 
 export async function extractPatientFields(file: File): Promise<PatientFields> {
-    if (!API_KEY) {
-        console.warn("VITE_GEMINI_API_KEY is missing. Running in high-fidelity Sandbox extraction mode.");
-        await new Promise(r => setTimeout(r, 1200)); // simulate extraction lag
-        
-        const name = file.name.toLowerCase();
-        if (name.includes("breast") || name.includes("cancer")) {
-            return {
-                age: 45,
-                sex: "female",
-                conditions: ["Breast cancer", "Stage IIB", "Invasive ductal carcinoma"],
-                medications: ["Tamoxifen"],
-                biomarkers: ["HER2+", "ER+", "PR-"]
-            };
-        } else if (name.includes("diabet") || name.includes("sugar")) {
-            return {
-                age: 58,
-                sex: "male",
-                conditions: ["Type 2 Diabetes", "Diabetic neuropathy"],
-                medications: ["Metformin", "Insulin glargine"],
-                biomarkers: ["HbA1c 8.2%"]
-            };
-        } else {
-            return {
-                age: 52,
-                sex: "female",
-                conditions: ["Breast cancer", "Stage III"],
-                medications: ["Anastrozole"],
-                biomarkers: ["HER2+", "ER+"]
-            };
-        }
-    }
     return extractFromFile(file);
 }
 
 export async function extractPatientFieldsFromMultiple(files: File[]): Promise<PatientFields> {
-    if (!API_KEY) {
-        console.warn("VITE_GEMINI_API_KEY is missing. Running in high-fidelity Sandbox extraction mode.");
-        const results = await Promise.all(files.map(f => extractPatientFields(f)));
-        return mergePatientFields(results);
-    }
     const results = await Promise.all(files.map(f => extractFromFile(f)));
     return mergePatientFields(results);
 }
-
-
