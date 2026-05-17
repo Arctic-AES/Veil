@@ -13,12 +13,23 @@ export function useZkProof() {
       setError('No eligibility result to prove.')
       return
     }
+    if (!state.patient) {
+      setError('No patient profile loaded.')
+      return
+    }
+    if (!state.walletAddress) {
+      setError('Connect a wallet before generating a proof.')
+      return
+    }
     setRunning(true)
     setProgress([])
     setError(null)
     try {
-      const proof = await generateProof(state.eligibility, (p) =>
-        setProgress((prev) => [...prev, p]),
+      const proof = await generateProof(
+        state.eligibility,
+        state.patient,
+        state.walletAddress,
+        (p) => setProgress((prev) => [...prev, p]),
       )
       dispatch({ type: 'SET_PROOF', proof })
     } catch (e) {

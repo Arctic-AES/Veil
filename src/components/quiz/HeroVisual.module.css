@@ -4,14 +4,116 @@
   overflow: hidden;
   pointer-events: none;
   z-index: 0;
+  background: radial-gradient(circle at 50% 50%, #0d0f17 0%, #040508 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-.video {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  display: block;
-  filter: saturate(1.05) contrast(1.02);
+.meshGrid {
+  position: absolute;
+  inset: 0;
+  opacity: 0.08;
+  background-image: 
+    linear-gradient(rgba(99, 102, 241, 0.3) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(99, 102, 241, 0.3) 1px, transparent 1px);
+  background-size: 40px 40px;
+  transform: perspective(500px) rotateX(60deg) translateY(-100px) translateZ(-50px);
+  animation: scrollGrid 20s linear infinite;
+}
+
+@keyframes scrollGrid {
+  0% {
+    background-position: 0 0;
+  }
+  100% {
+    background-position: 0 800px;
+  }
+}
+
+.shieldContainer {
+  position: relative;
+  width: 280px;
+  height: 280px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.glowBackdrop {
+  position: absolute;
+  width: 220px;
+  height: 220px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(168, 85, 247, 0.25) 0%, rgba(99, 102, 241, 0.15) 50%, transparent 100%);
+  filter: blur(40px);
+  animation: pulseGlow 8s ease-in-out infinite alternate;
+}
+
+.pulsingCore {
+  position: absolute;
+  width: 140px;
+  height: 140px;
+  border-radius: 50%;
+  border: 1px solid rgba(139, 92, 246, 0.3);
+  background: radial-gradient(circle, rgba(139, 92, 246, 0.1) 0%, transparent 80%);
+  animation: pulseCore 4s ease-in-out infinite alternate;
+}
+
+.orbitalRing {
+  position: absolute;
+  width: 240px;
+  height: 240px;
+  border-radius: 50%;
+  border: 1px dashed rgba(6, 182, 212, 0.2);
+  animation: spinRing 24s linear infinite;
+}
+
+.innerShield {
+  position: relative;
+  width: 160px;
+  height: 160px;
+  border-radius: 50%;
+  background: rgba(17, 24, 39, 0.65);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  box-shadow: 
+    0 10px 30px -10px rgba(0, 0, 0, 0.7),
+    inset 0 1px 1px rgba(255, 255, 255, 0.1);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  animation: floatShield 6s ease-in-out infinite;
+}
+
+.shieldIcon {
+  width: 48px;
+  height: 48px;
+  color: #a855f7;
+  filter: drop-shadow(0 0 12px rgba(168, 85, 247, 0.6));
+  animation: glowIcon 3s ease-in-out infinite alternate;
+}
+
+.shieldText {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  color: rgba(255, 255, 255, 0.7);
+  text-transform: uppercase;
+}
+
+.particle {
+  position: absolute;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: rgba(99, 102, 241, 0.4);
+  box-shadow: 0 0 8px rgba(99, 102, 241, 0.8);
+  animation: driftParticle linear infinite;
+  opacity: 0;
 }
 
 .vignette {
@@ -19,6 +121,74 @@
   inset: 0;
   pointer-events: none;
   background:
-    radial-gradient(ellipse 80% 70% at 50% 50%, transparent 55%, rgba(255, 255, 255, 0.4) 100%),
-    linear-gradient(180deg, rgba(255, 255, 255, 0.05) 0%, transparent 30%, transparent 70%, rgba(255, 255, 255, 0.15) 100%);
+    radial-gradient(ellipse 80% 70% at 50% 50%, transparent 40%, rgba(4, 5, 8, 0.6) 100%),
+    linear-gradient(180deg, transparent 70%, #040508 100%);
+}
+
+@keyframes pulseGlow {
+  0% {
+    transform: scale(0.9);
+    opacity: 0.8;
+  }
+  100% {
+    transform: scale(1.1);
+    opacity: 1;
+  }
+}
+
+@keyframes pulseCore {
+  0% {
+    transform: scale(0.95);
+    border-color: rgba(139, 92, 246, 0.2);
+  }
+  100% {
+    transform: scale(1.05);
+    border-color: rgba(6, 182, 212, 0.4);
+  }
+}
+
+@keyframes spinRing {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes floatShield {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+@keyframes glowIcon {
+  0% {
+    color: #a855f7;
+    filter: drop-shadow(0 0 8px rgba(168, 85, 247, 0.4));
+  }
+  100% {
+    color: #06b6d4;
+    filter: drop-shadow(0 0 16px rgba(6, 182, 212, 0.8));
+  }
+}
+
+@keyframes driftParticle {
+  0% {
+    transform: translateY(20px) scale(0);
+    opacity: 0;
+  }
+  20% {
+    opacity: 0.8;
+  }
+  80% {
+    opacity: 0.8;
+  }
+  100% {
+    transform: translateY(-100px) scale(1.2);
+    opacity: 0;
+  }
 }

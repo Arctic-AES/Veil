@@ -36,7 +36,7 @@ export default function ProvePage() {
       <div className={s.grid}>
         <Card padded className={s.stage}>
           <h3 className={s.stageT}>Generating proof</h3>
-          <p className={s.stageS}>ZK-SNARK over BLS12-381 · compiled from Compact circuit</p>
+          <p className={s.stageS}>Cryptographic eligibility commitment · SHA-256 over canonicalized witness · derived from the Compact circuit shape in contracts/eligibility.compact</p>
           <ProofOrb done={!!proof} />
           <ProofSteps progress={progress} running={running} />
           <Button
