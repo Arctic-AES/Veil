@@ -4,7 +4,7 @@ import RecordRow from './RecordRow'
 import s from './RecordsImport.module.css'
 
 export default function RecordsImport() {
-  const { records, importing, importFiles, patient } = usePatientImport()
+  const { records, importing, importFiles, patient, error, cooldown } = usePatientImport()
   const inputRef = useRef<HTMLInputElement>(null)
 
   function pick() {
@@ -28,11 +28,19 @@ export default function RecordsImport() {
   }
 
   return (
-    <div className={s.zone} onClick={pick}>
+    <div className={s.zone} onClick={cooldown > 0 ? undefined : pick} style={cooldown > 0 ? { opacity: 0.7, cursor: 'not-allowed' } : {}}>
       <div className={s.iconBig}>{'\u{1F4C2}'}</div>
       <div className={s.t}>{importing ? 'Reading…' : 'Import records to this browser'}</div>
-      <div className={s.s}>FHIR, CCDA, PDF, or CSV · processed locally</div>
-      <button type="button" className={s.btn}>Choose records</button>
+      {cooldown > 0 ? (
+        <div className={s.s} style={{ color: 'var(--amber)', fontWeight: 500 }}>
+          AI cooling down. Try again in {cooldown}s...
+        </div>
+      ) : error ? (
+        <div className={s.s} style={{ color: 'var(--red)', fontWeight: 500 }}>Error: {error}</div>
+      ) : (
+        <div className={s.s}>FHIR, CCDA, PDF, or CSV · processed locally</div>
+      )}
+      <button type="button" className={s.btn} disabled={cooldown > 0}>Choose records</button>
       <input
         ref={inputRef}
         type="file"

@@ -6,23 +6,25 @@ import s from './ScreeningPanel.module.css'
 
 export default function ScreeningPanel() {
   const { state } = useFlow()
-  const { result, running, run } = useEligibility()
+  const { result, running, error, cooldown, run } = useEligibility()
 
   useEffect(() => {
-    if (state.patient && state.selectedTrial && !result && !running) {
+    if (state.patient && state.selectedTrial && !result && !running && cooldown === 0 && !error) {
       run()
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [state.patient, state.selectedTrial])
+  }, [state.patient, state.selectedTrial, cooldown])
 
   const ready = !!state.patient && !!state.selectedTrial
-  const status: 'idle' | 'scanning' | 'done' = !ready
+  const status: 'idle' | 'scanning' | 'done' | 'error' = !ready
     ? 'idle'
-    : running
-      ? 'scanning'
-      : result
-        ? 'done'
-        : 'scanning'
+    : cooldown > 0 || error
+      ? 'error'
+      : running
+        ? 'scanning'
+        : result
+          ? 'done'
+          : 'scanning'
 
   return (
     <div className={s.card}>
@@ -31,18 +33,23 @@ export default function ScreeningPanel() {
         <p className={s.sub}>Runs in this browser after records load.</p>
       </div>
 
-      <div className={clsx(s.status, s[status])}>
-        <span className={s.pulseDot} />
+      <div className={clsx(s.status, s[status])} style={status === 'error' ? { borderColor: 'var(--amber-soft)', background: 'var(--amber-soft)' } : {}}>
+        <span className={s.pulseDot} style={status === 'error' ? { background: 'var(--amber)' } : {}} />
         <div className={s.body}>
           <div className={s.t}>
             {status === 'idle' && 'Waiting for records…'}
             {status === 'scanning' && `Screening locally against ${state.selectedTrial?.nctId}…`}
+            {status === 'error' && (cooldown > 0 ? 'AI rate limit reached' : 'Screening error')}
             {status === 'done' && 'Screening complete'}
           </div>
           <div className={s.s}>
-            {status === 'done' && result
-              ? `${result.criteriaAnalysis.filter((c) => c.met).length}/${result.criteriaAnalysis.length} constraints satisfied · ${result.confidenceScore}% confidence`
-              : 'Phi-3 Mini · 4-bit · WebGPU'}
+            {status === 'error' && cooldown > 0
+              ? `Cooling down. Retrying in ${cooldown}s...`
+              : status === 'error' && error
+                ? error
+                : status === 'done' && result
+                  ? `${result.criteriaAnalysis.filter((c) => c.met).length}/${result.criteriaAnalysis.length} constraints satisfied · ${result.confidenceScore}% confidence`
+                  : 'Phi-3 Mini · 4-bit · WebGPU'}
           </div>
         </div>
       </div>

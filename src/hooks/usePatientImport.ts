@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useFlow } from './useFlow'
 import { extractPatientFromPdf } from '../services/pdfExtractor'
+import { useRateLimit } from './useRateLimit'
 
 export type ImportedRecord = {
   name: string
@@ -13,8 +14,10 @@ export function usePatientImport() {
   const [records, setRecords] = useState<ImportedRecord[]>([])
   const [importing, setImporting] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const { cooldown, handleRateLimit } = useRateLimit()
 
   async function importFiles(files: FileList) {
+    if (cooldown > 0) return
     setImporting(true)
     setError(null)
     try {
@@ -25,7 +28,11 @@ export function usePatientImport() {
         list.map((f) => ({ name: f.name, size: f.size, status: 'loaded' })),
       )
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Failed to import')
+      if (handleRateLimit(e)) {
+        setError(null) // Handled by cooldown UI
+      } else {
+        setError(e instanceof Error ? e.message : 'Failed to import')
+      }
     } finally {
       setImporting(false)
     }
@@ -36,6 +43,7 @@ export function usePatientImport() {
     records,
     importing,
     error,
+    cooldown,
     importFiles,
   }
 }
