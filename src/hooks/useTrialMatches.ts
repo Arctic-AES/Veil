@@ -6,6 +6,7 @@ export function useTrialMatches() {
   const { state, dispatch } = useFlow()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [totalCount, setTotalCount] = useState<number>(0)
 
   useEffect(() => {
     if (state.trials.length > 0) return
@@ -16,8 +17,9 @@ export function useTrialMatches() {
       condition: state.quiz.condition,
       region: state.quiz.region,
     })
-      .then((trials) => {
+      .then(({ trials, totalCount }) => {
         if (cancelled) return
+        setTotalCount(totalCount)
         dispatch({ type: 'SET_TRIALS', trials })
       })
       .catch((e) => {
@@ -30,5 +32,5 @@ export function useTrialMatches() {
     }
   }, [state.quiz.condition, state.quiz.region, state.trials.length, dispatch])
 
-  return { trials: state.trials, loading, error }
+  return { trials: state.trials, loading, error, totalCount }
 }

@@ -59,7 +59,7 @@ export function flowReducer(state: FlowState, action: FlowAction): FlowState {
     case 'SET_TRIALS':
       return { ...state, trials: action.trials }
     case 'SELECT_TRIAL':
-      return { ...state, selectedTrial: action.trial }
+      return { ...state, selectedTrial: action.trial, eligibility: null }
     case 'SET_ELIGIBILITY':
       return { ...state, eligibility: action.result }
     case 'SET_PROOF':

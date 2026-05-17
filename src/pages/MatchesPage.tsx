@@ -6,12 +6,16 @@ import s from './MatchesPage.module.css'
 
 export default function MatchesPage() {
   const { dispatch } = useFlow()
-  const { trials, loading } = useTrialMatches()
+  const { trials, loading, totalCount } = useTrialMatches()
 
   function selectTrial(trial: typeof trials[number]) {
     dispatch({ type: 'SELECT_TRIAL', trial })
     dispatch({ type: 'SET_STEP', step: 3 })
   }
+
+  const matchRate = totalCount > 0 ? Math.round((trials.length / totalCount) * 100) : 0
+  const topMatch = trials.length > 0 ? matchRate + '%' : '—'
+  const searched = loading ? '…' : totalCount > 0 ? totalCount.toLocaleString() : trials.length.toLocaleString()
 
   return (
     <div>
@@ -24,9 +28,9 @@ export default function MatchesPage() {
           </p>
         </div>
         <div className={s.stats}>
-          <Stat n="52,341" l="Trials searched" />
-          <Stat n="97%" l="Top match" />
-          <Stat n="2.4s" l="Local inference" />
+          <Stat n={searched} l="Trials searched" />
+          <Stat n={topMatch} l="Match rate" />
+          <Stat n="Gemini 2.5" l="AI model" />
         </div>
       </div>
 
