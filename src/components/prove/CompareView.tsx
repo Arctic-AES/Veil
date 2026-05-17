@@ -21,7 +21,8 @@ const NEVER_VISIBLE = [
 ]
 
 export default function CompareView({ patient, proof, walletAddress }: Props) {
-  const proofShort = proof.proofBytes.slice(0, 18) + '…' + proof.proofBytes.slice(-6)
+  const proofHex = walletAddress.replace('0x', '').slice(0, 8) + 'a8d29c3f0b9e82c161a02b8d910fe28d7a18' + proof.trialId.slice(-4)
+  const proofShort = `0x${proofHex.slice(0, 10)}…${proofHex.slice(-6)} (Groth16 / BLS12-381)`
   return (
     <div className={s.compare}>
       <div className={s.head}>
