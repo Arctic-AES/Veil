@@ -60,10 +60,6 @@ VITE_PROOF_SERVER_URL=http://localhost:6300
 npm run dev
 ```
 
-Opens at http://localhost:5173.
-
-**For full on-chain submission (optional)**
-
 Run the Midnight proof server, then set Lace to use it under Settings, Midnight, Local:
 
 ```bash
