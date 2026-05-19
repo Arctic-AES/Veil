@@ -99,7 +99,7 @@ export circuit proveEligibility(
 
 | | |
 |---|---|
-| Frontend | React 19, TypeScript, Vite |
+| Frontend | React, TypeScript, Vite |
 | AI | Google Gemini 2.5 Flash |
 | Trials data | ClinicalTrials.gov v2 API |
 | ZK proof | Midnight Compact, compact-runtime (WASM) |
